@@ -1,4 +1,7 @@
 from fastapi import FastAPI
+import uvicorn
+from decouple import config
+
 
 app = FastAPI()
 
@@ -9,3 +12,7 @@ async def health():
              "detail": "ok",
              "result": "working"
            }
+
+
+if __name__ == '__main__':
+    uvicorn.run('main:app', host=config('host_port', cast=str), port=config('app_port', cast=int), reload=True)
