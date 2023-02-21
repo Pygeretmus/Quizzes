@@ -1,0 +1,11 @@
+services:
+  web:
+    build:
+      context: .
+    command: python app/main.py
+    ports:
+      - '8001:8000'
+  test:
+    build:
+      context: .
+    command: python -m pytest
