@@ -6,5 +6,5 @@
 Запуск тестов - python -m pytest
 
 ## Docker
-Запуск приложения и тестов - docker-compose up --build
-если же контейнер уже построен - docker-compose up
+Построение изображения - docker build -t myimage .
+Построение контейнера - docker run -d --name mycontainer -p 80:80 myimage

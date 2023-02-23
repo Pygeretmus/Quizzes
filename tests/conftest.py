@@ -7,7 +7,7 @@ from starlette.testclient import TestClient
 from httpx import AsyncClient
 
 #import your app
-from app.main import app
+from main import app
 
 
 @pytest.fixture(scope="session")
