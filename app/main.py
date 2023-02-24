@@ -1,9 +1,21 @@
 from fastapi import FastAPI
 import uvicorn
 from decouple import config
+import connections
 
 
 app = FastAPI()
+
+
+@app.on_event("startup")
+async def databases_connect():
+    await connections.redis_connect()
+    await connections.db_connect()
+
+@app.on_event("shutdown")
+async def databases_close():
+    await connections.redis.close()
+    await connections.db_disconnect()
 
 @app.get('/')
 async def health():
