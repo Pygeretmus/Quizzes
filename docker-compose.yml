@@ -5,28 +5,21 @@ services:
     volumes:
     - .:/code
     ports: 
-    - "8000:8000"
+    - "${app_port}:${app_port}"
     env_file: .env
-    environment:
-    - app_host=0.0.0.0
-    - app_port=8000
     depends_on:
       - redis
       - postgres
   redis:
     image: redis
     ports:
-    - "6379:6379"
+    - "${REDIS_PORT}:${REDIS_PORT}"
     volumes:
     - .:/data
   postgres:
     image: postgres:15
     ports:
       - "${POSTGRES_PORT}:${POSTGRES_PORT}"
-    environment:
-      - POSTGRES_DATABASE=${POSTGRES_DATABASE}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     env_file:
       - .env
     volumes:

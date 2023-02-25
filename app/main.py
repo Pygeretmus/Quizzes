@@ -10,12 +10,14 @@ app = FastAPI()
 @app.on_event("startup")
 async def databases_connect():
     await connections.redis_connect()
-    await connections.db_connect()
+    database = connections.get_db() 
+    await database.connect()
 
 @app.on_event("shutdown")
 async def databases_close():
     await connections.redis.close()
-    await connections.db_disconnect()
+    database = connections.get_db() 
+    await database.disconnect()
 
 @app.get('/')
 async def health():
