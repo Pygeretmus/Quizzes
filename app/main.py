@@ -3,7 +3,6 @@ import uvicorn
 from decouple import config
 import connections
 
-
 app = FastAPI()
 
 

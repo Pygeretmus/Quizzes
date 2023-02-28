@@ -1,9 +1,14 @@
 import aioredis
 from decouple import config
-import databases
+from databases import Database
+import sqlalchemy
+from sqlalchemy.ext.asyncio import create_async_engine
 
-db = databases.Database(f"postgresql://{config('POSTGRES_USER')}:{config('POSTGRES_PASSWORD')}@{config('POSTGRES_HOST')}:{config('POSTGRES_PORT')}/{config('POSTGRES_DATABASE')}")
+
+DATABASE_URL = f"postgresql+asyncpg://{config('POSTGRES_USER')}:{config('POSTGRES_PASSWORD')}@{config('POSTGRES_HOST')}:{config('POSTGRES_PORT')}/{config('POSTGRES_DATABASE')}" 
+db = Database(DATABASE_URL)
 redis = False
+metadata = sqlalchemy.MetaData()
 
 def get_db():
     return db
