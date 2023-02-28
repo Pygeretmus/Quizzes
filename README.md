@@ -11,3 +11,8 @@
 
 ## Docker-compose
 Запуск контейнера вместе с построением - docker-compose up --build
+
+## Alembic
+Создание миграции - docker-compose exec web alembic revision --autogenerate -m "комментарий"
+
+Обновление до последней миграции - docker-compose exec web alembic upgrade head
