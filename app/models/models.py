@@ -1,10 +1,11 @@
-from connections import get_db, metadata, sqlalchemy
+from connections import get_db, metadata
+from sqlalchemy import Column, Integer, String, Table
 
-user = sqlalchemy.Table(
+user = Table(
     "user",
     metadata,
-    sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True),
-    sqlalchemy.Column("name", sqlalchemy.String),
-    sqlalchemy.Column("password", sqlalchemy.String),
-    sqlalchemy.Column("email", sqlalchemy.String),
+    Column("id", Integer, primary_key=True),
+    Column("name", String),
+    Column("password", String),
+    Column("email", String, unique=True),
 )

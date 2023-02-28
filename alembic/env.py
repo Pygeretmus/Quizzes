@@ -8,7 +8,6 @@ from alembic import context
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(BASE_DIR+"/app")
-print(sys.path)
 
 from connections import metadata, DATABASE_URL
 import models.models
