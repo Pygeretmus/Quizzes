@@ -13,14 +13,14 @@ class UserService:
         self.db = db
 
 
-    async def make_changes(data: UserUpdateRequest) -> UserUpdateRequest:
+    async def make_changes(self, data: UserUpdateRequest) -> UserUpdateRequest:
         result = {}
         for items in data:
             if items[1]:
                 result[items[0]] = items[1]
         return result
 
-    async def password_check(password: str):
+    async def password_check(self, password: str):
         if not password:
             raise HTTPException(status_code=422, detail="Password not specified")
         elif len(password) < 4:
@@ -42,7 +42,7 @@ class UserService:
 
 
     async def create_user(self, account: SignUpRequest) -> UserResponse:
-        await UserService.password_check(account.user_password)
+        await self.password_check(account.user_password)
         query = select(Users).where(Users.user_email == account.user_email)
         result = await self.db.fetch_one(query=query)
         if result:
@@ -57,23 +57,23 @@ class UserService:
             "user_registred_at": datetime.datetime.now()}
         ).returning(Users)
         id = await self.db.execute(query=query)
-        return await UserService(db=self.db).get_user_id(id=id)
+        return await self.get_user_id(id=id)
 
 
     async def delete_user(self, id: int) -> str:
-        await UserService(db=self.db).get_user_id(id=id)
+        await self.get_user_id(id=id)
         query = delete(Users).where(Users.user_id == id)
         await self.db.execute(query=query)
         return "Successfully deleted"
 
 
     async def update_user(self, id: int, data: UserUpdateRequest):
-        await UserService(db=self.db).get_user_id(id=id)
-        changes = await UserService.make_changes(data = data)
+        await self.get_user_id(id=id)
+        changes = await self.make_changes(data = data)
         if changes: 
             if "user_password" in changes.keys():
-                await UserService.password_check(changes["user_password"])
+                await self.password_check(changes["user_password"])
                 changes["user_password"] = PasswordHasher().hash(changes["user_password"])
             query = update(Users).where(Users.user_id == id).values(dict(changes)).returning(Users)
             id = await self.db.execute(query=query)
-        return await UserService(db=self.db).get_user_id(id=id)
+        return await self.get_user_id(id=id)
