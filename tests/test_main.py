@@ -1,7 +1,6 @@
 from httpx import AsyncClient
-import pytest
 
-@pytest.mark.asyncio
+
 async def test_health_check(ac: AsyncClient):
     data = {
         "status_code": 200,
