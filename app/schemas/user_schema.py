@@ -1,16 +1,22 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional
+import datetime
+
 
 class User(BaseModel):
     user_id: int
     user_name: str
     user_email: EmailStr
-    
+    user_status: Optional[str]
+    user_registred_at: datetime.datetime 
+
     class Config:
         orm_mode = True
 
+
 class Userlist(BaseModel):
     users: list[User]
+
 
 class Account(User):
     user_password: str
@@ -29,10 +35,12 @@ class SignUpRequest(SignInRequest):
 class UserUpdateRequest(BaseModel):
     user_name: Optional[str] = ""
     user_password: Optional[str] = ""
+    user_status: Optional[str] = ""
 
 
 class UserResponse(BaseModel):
     result: User
+
 
 class UserListResponse(BaseModel):
     result: Userlist
