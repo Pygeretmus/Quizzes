@@ -9,7 +9,7 @@ from alembic import context
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(BASE_DIR+"/app")
 
-from connections import metadata, DATABASE_URL
+from core.connections import DATABASE_URL
 import models.models
 
 # this is the Alembic Config object, which provides
@@ -30,7 +30,7 @@ fileConfig(config.config_file_name)
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-target_metadata = metadata
+target_metadata = models.models.Base.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:

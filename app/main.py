@@ -1,22 +1,29 @@
 from fastapi import FastAPI
 import uvicorn
 from decouple import config
-import connections
+from core.connections import get_db, redis_close, redis_connect
+from routers.user_route import router 
+from schemas.user_schema import *
+
 
 app = FastAPI()
+app.include_router(router, prefix='')
 
 
 @app.on_event("startup")
 async def databases_connect():
-    await connections.redis_connect()
-    database = connections.get_db() 
-    await database.connect()
+    await redis_connect()  
+    databases = get_db()
+    await databases.connect()
+
 
 @app.on_event("shutdown")
 async def databases_close():
-    await connections.redis.close()
-    database = connections.get_db() 
-    await database.disconnect()
+    await redis_close()  
+    databases = get_db()
+    await databases.disconnect()
+
+
 
 @app.get('/')
 async def health():
@@ -25,6 +32,9 @@ async def health():
              "detail": "ok",
              "result": "working"
            }
+
+
+
 
 
 if __name__ == '__main__':

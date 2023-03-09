@@ -3,4 +3,4 @@ WORKDIR /code
 COPY ./requirements.txt /code/requirements.txt
 RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt 
 COPY . .
-CMD python -m pytest; python app/main.py
+CMD python -m pytest; alembic upgrade head && python app/main.py
