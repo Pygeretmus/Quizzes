@@ -4,7 +4,6 @@ from decouple import config
 from core.connections import get_db, redis_close, redis_connect
 from routers import user_route, auth
 from schemas.user_schema import *
-from fastapi.security import HTTPBearer
 
 
 app = FastAPI()

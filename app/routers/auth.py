@@ -8,25 +8,29 @@ from fastapi.security import HTTPBearer
 from routers.user_route import UserService
 import random
 
+
 router = APIRouter()
 
 auth_token_schema = HTTPBearer()
 
 
-@router.post('/login')
-async def autentification(login: SignInRequest, db: Database =Depends(get_db)):
+@router.post('/login', response_model=TokenResponse)
+async def autentification(login: SignInRequest, db: Database =Depends(get_db)) -> TokenResponse:
     await UserService(db=db).sign_in_verify(login=login)
     return TokenResponse(result = Token(access_token=create_access_token({'sub': login.user_email}), token_type="Bearer"))
 
 
-@router.get('/me')
-async def information(token: str = Depends(auth_token_schema), db: Database = Depends(get_db)):
+@router.get('/me', response_model=UserResponse)
+async def information(token: str = Depends(auth_token_schema), db: Database = Depends(get_db)) -> UserResponse:
     payload = decode_access_token(token.credentials)
     if not payload:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token is not valid")
-    email = payload["sub"]
-    if not email:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Email is not valid")
+    try:
+        email = payload["https://example.com/email"]
+    except KeyError:
+        email = payload["sub"]
+        if not email:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Email is not valid")
     user = await UserService(db=db).get_user_email(email=email)
     if not user:
         password = ''

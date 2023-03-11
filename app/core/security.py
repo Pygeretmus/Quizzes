@@ -1,7 +1,6 @@
 import datetime
-from jose import jwt
+import jwt
 from decouple import config
-
 
 
 def create_access_token(data: dict) -> str:
@@ -10,9 +9,11 @@ def create_access_token(data: dict) -> str:
     return jwt.encode(to_encode, config("SECRET_KEY"), algorithm=config("ALGORITHM"))
 
 
-def decode_access_token(token: str):
+def decode_access_token(token: str) -> dict:
     try:
-        encoded_jwt = jwt.decode(token, config('SECRET_KEY'), algorithms=config("ALGORITHM"))
-    except jwt.JWSError and jwt.JWTError:
+        decoded_jwt = jwt.decode(jwt=token, key=(config("SECRET_KEY")), algorithms=config("ALGORITHM"), audience=config("AUDIENCE"), issuer=config("ISSUER"))
+    except jwt.exceptions.DecodeError:
         return None
-    return encoded_jwt
+    except jwt.exceptions.MissingRequiredClaimError:
+        decoded_jwt = jwt.decode(jwt=token, key=config("SECRET_KEY"), algorithms=config("ALGORITHM"))
+    return decoded_jwt
