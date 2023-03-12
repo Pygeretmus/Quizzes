@@ -2,12 +2,13 @@ from fastapi import FastAPI
 import uvicorn
 from decouple import config
 from core.connections import get_db, redis_close, redis_connect
-from routers.user_route import router 
+from routers import user_route, auth
 from schemas.user_schema import *
 
 
 app = FastAPI()
-app.include_router(router, prefix='')
+app.include_router(user_route.router, prefix='', tags= ["User"])
+app.include_router(auth.router, prefix='/auth', tags=["Auth"])
 
 
 @app.on_event("startup")
