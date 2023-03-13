@@ -13,15 +13,7 @@ router = APIRouter()
 
 auth_token_schema = HTTPBearer()
 
-
-@router.post('/login', response_model=TokenResponse)
-async def autentification(login: SignInRequest, db: Database =Depends(get_db)) -> TokenResponse:
-    await UserService(db=db).sign_in_verify(login=login)
-    return TokenResponse(result = Token(access_token=create_access_token({'sub': login.user_email}), token_type="Bearer"))
-
-
-@router.get('/me', response_model=UserResponse)
-async def information(token: str = Depends(auth_token_schema), db: Database = Depends(get_db)) -> UserResponse:
+async def get_current_user(token: str = Depends(auth_token_schema), db: Database = Depends(get_db)) -> UserResponse:
     payload = decode_access_token(token.credentials)
     if not payload:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token is not valid")
@@ -42,4 +34,15 @@ async def information(token: str = Depends(auth_token_schema), db: Database = De
             user_password_repeat = password,
             user_name = "User" 
         ))
+    return user
+
+
+@router.post('/login', response_model=TokenResponse)
+async def autentification(login: SignInRequest, db: Database =Depends(get_db)) -> TokenResponse:
+    await UserService(db=db).sign_in_verify(login=login)
+    return TokenResponse(result = Token(access_token=create_access_token({'sub': login.user_email}), token_type="Bearer"))
+
+
+@router.get('/me', response_model=UserResponse)
+async def information(user: UserResponse = Depends(get_current_user)) -> UserResponse:
     return user

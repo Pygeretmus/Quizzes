@@ -10,9 +10,10 @@ import datetime
 
 class UserService:
 
-    def __init__(self, db:Database):
+    def __init__(self, db:Database, user: UserResponse = None):
         self.db = db
-
+        self.user = user
+        
 
     async def make_changes(self, data: UserUpdateRequest) -> UserUpdateRequest:
         result = {}
