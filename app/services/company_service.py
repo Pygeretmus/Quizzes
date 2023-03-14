@@ -23,6 +23,12 @@ class CompanyService:
         return result
 
 
+    async def owner_check(self, id: int):
+        company = await self.get_company_id(id=id)
+        if self.user.result.user_id != company.result.company_owner_id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"It's not your company")
+
+
     async def get_companies(self) -> CompanyListResponse:
         query = select(Companies)
         result = await self.db.fetch_all(query=query)
@@ -38,8 +44,7 @@ class CompanyService:
     
 
     async def delete_company(self, id: int) -> str:
-        company = await self.get_company_id(id=id)
-        await UserService(db=self.db, user=self.user).id_check(id=company.result.company_owner_id, ownership="company")
+        await self.owner_check(id=id)
         query = delete(Companies).where(Companies.company_id == id)
         await self.db.execute(query=query)
         return "Successfully deleted"
@@ -57,8 +62,7 @@ class CompanyService:
 
 
     async def update_company(self, id: int, data: CompanyUpdateRequest) -> CompanyResponse: 
-        company = await self.get_company_id(id=id)
-        await UserService(db=self.db, user=self.user).id_check(id=company.result.company_owner_id, ownership="company")
+        await self.owner_check(id=id)
         changes = await self.make_changes(data = data)
         if changes: 
             query = update(Companies).where(Companies.company_id == id).values(dict(changes)).returning(Companies)

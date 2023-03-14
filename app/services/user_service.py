@@ -9,7 +9,6 @@ import datetime
 
 
 
-
 class UserService:
 
     def __init__(self, db:Database, user:UserResponse=None):
@@ -25,15 +24,9 @@ class UserService:
         return result
 
 
-    async def id_check(self, id: int, ownership: str):
+    async def id_check(self, id: int):
         if self.user.result.user_id != id:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"It's not your {ownership}")
-
-
-
-    async def id_check(self, id: int, ownership: str):
-        if self.user.result.user_id != id:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"It's not your {ownership}")
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"It's not your account")
 
 
     async def password_check(self, password: str):
@@ -93,17 +86,14 @@ class UserService:
 
 
     async def delete_user(self, id: int) -> str:
-        await self.id_check(id=id, ownership="account")
-        await self.id_check(id=id, ownership="account")
+        await self.id_check(id=id)
         query = delete(Users).where(Users.user_id == id)
         await self.db.execute(query=query)
         return "Successfully deleted"
 
 
     async def update_user(self, id: int, data: UserUpdateRequest) -> UserResponse: 
-        await self.id_check(id=id, ownership="account")
-    async def update_user(self, id: int, data: UserUpdateRequest) -> UserResponse: 
-        await self.id_check(id=id, ownership="account")
+        await self.id_check(id=id)
         changes = await self.make_changes(data = data)
         if changes: 
             if "user_password" in changes.keys():
