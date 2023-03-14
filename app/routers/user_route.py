@@ -4,6 +4,7 @@ from databases import Database
 from schemas.user_schema import *
 from fastapi import APIRouter, Depends
 from core.security import get_current_user
+from core.security import get_current_user
 
 
 router = APIRouter()

@@ -9,6 +9,7 @@ import datetime
 
 
 
+
 class UserService:
 
     def __init__(self, db:Database, user:UserResponse=None):
@@ -22,6 +23,12 @@ class UserService:
             if items[1]:
                 result[items[0]] = items[1]
         return result
+
+
+    async def id_check(self, id: int, ownership: str):
+        if self.user.result.user_id != id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"It's not your {ownership}")
+
 
 
     async def id_check(self, id: int, ownership: str):
@@ -81,11 +88,18 @@ class UserService:
             user_password = hashed_password,
             user_name = account.user_name,
             user_registred_at = datetime.datetime.utcnow()
+        query = insert(Users).values(
+            user_email = account.user_email,
+            user_password = hashed_password,
+            user_name = account.user_name,
+            user_registred_at = datetime.datetime.utcnow()
         ).returning(Users)
+        return UserResponse(result=await self.db.fetch_one(query=query))
         return UserResponse(result=await self.db.fetch_one(query=query))
 
 
     async def delete_user(self, id: int) -> str:
+        await self.id_check(id=id, ownership="account")
         await self.id_check(id=id, ownership="account")
         query = delete(Users).where(Users.user_id == id)
         await self.db.execute(query=query)
@@ -94,10 +108,13 @@ class UserService:
 
     async def update_user(self, id: int, data: UserUpdateRequest) -> UserResponse: 
         await self.id_check(id=id, ownership="account")
+    async def update_user(self, id: int, data: UserUpdateRequest) -> UserResponse: 
+        await self.id_check(id=id, ownership="account")
         changes = await self.make_changes(data = data)
         if changes: 
             if "user_password" in changes.keys():
                 await self.password_check(changes["user_password"])
                 changes["user_password"] = PasswordHasher().hash(changes["user_password"])
             query = update(Users).where(Users.user_id == id).values(dict(changes)).returning(Users)
+        return UserResponse(result=await self.db.fetch_one(query=query))
         return UserResponse(result=await self.db.fetch_one(query=query))

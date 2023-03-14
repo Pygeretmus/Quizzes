@@ -20,3 +20,7 @@ async def autentification(login: SignInRequest, db: Database =Depends(get_db)) -
 @router.get('/me', response_model=UserResponse)
 async def information(user: UserResponse = Depends(get_current_user)) -> UserResponse:
     return user
+
+@router.get('/me', response_model=UserResponse)
+async def information(user: UserResponse = Depends(get_current_user)) -> UserResponse:
+    return user
