@@ -5,6 +5,8 @@ from sqlalchemy import select, insert, delete, update
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 from fastapi import HTTPException, status
+from argon2.exceptions import VerifyMismatchError
+from fastapi import HTTPException, status
 import datetime
 
 
@@ -32,7 +34,28 @@ class UserService:
     async def password_check(self, password: str):
         if not password:
             raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Password not specified")
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Password not specified")
         elif len(password) < 4:
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Password must be longer than three characters")
+
+
+    async def get_user_email(self, email: str) -> UserResponse:
+        query = select(Users).where(Users.user_email == email)
+        result = await self.db.fetch_one(query=query)
+        if result == None:
+            return None
+        return UserResponse(result = result)
+    
+
+    async def sign_in_verify(self, login: SignInRequest):
+        query = select(Users).where(Users.user_email == login.user_email)
+        result = await self.db.fetch_one(query=query)
+        if result == None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User doesn't exist")
+        try:
+            PasswordHasher().verify(hash=result.user_password, password=login.user_password)
+        except VerifyMismatchError:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect username or password")
             raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Password must be longer than three characters")
 
 
@@ -66,14 +89,19 @@ class UserService:
         result = await self.db.fetch_one(query=query)
         if not result:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User doesn't exist")
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User doesn't exist")
         return UserResponse(result = User(**result))
+    
     
 
     async def create_user(self, account: SignUpRequest) -> UserResponse:
         await self.password_check(account.user_password)
         if await self.get_user_email(email = account.user_email):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already exist")
+        if await self.get_user_email(email = account.user_email):
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already exist")
         if account.user_password != account.user_password_repeat:
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Invalid repeat password")
             raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Invalid repeat password")
         hashed_password = PasswordHasher().hash(account.user_password)
         query = insert(Users).values(
