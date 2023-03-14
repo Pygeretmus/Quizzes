@@ -33,8 +33,8 @@ class SignUpRequest(SignInRequest):
 
 
 class UserUpdateRequest(BaseModel):
-    user_name: Optional[str] = ""
-    user_password: Optional[str] = ""
+    user_name: Optional[str] = None
+    user_password: Optional[str] = None
 
 
 class UserResponse(BaseModel):
