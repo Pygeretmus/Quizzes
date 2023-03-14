@@ -4,15 +4,15 @@ from schemas.user_schema import UserResponse
 from sqlalchemy import select, insert, delete, update
 from databases import Database
 from fastapi import HTTPException, status
-
+from services.user_service import UserService
 
 
 
 class CompanyService:
 
-    def __init__(self, db:Database, owner: UserResponse = None):
+    def __init__(self, db:Database, user: UserResponse = None):
         self.db = db
-        self.owner = owner
+        self.user = user
 
 
     async def make_changes(self, data: CompanyUpdateRequest) -> CompanyUpdateRequest:
@@ -39,8 +39,7 @@ class CompanyService:
 
     async def delete_company(self, id: int) -> str:
         company = await self.get_company_id(id=id)
-        if self.owner.result.user_id != company.result.company_owner_id:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="It's not your company")
+        await UserService(db=self.db, user=self.user).id_check(id=company.result.company_owner_id, ownership="company")
         query = delete(Companies).where(Companies.company_id == id)
         await self.db.execute(query=query)
         return "Successfully deleted"
@@ -52,16 +51,14 @@ class CompanyService:
         query = insert(Companies).values(
             company_name = data.company_name,
             company_description = data.company_description,
-            company_owner_id = self.owner.result.user_id
+            company_owner_id = self.user.result.user_id
             ).returning(Companies)
         return CompanyResponse(result=await self.db.fetch_one(query=query))
 
 
-
     async def update_company(self, id: int, data: CompanyUpdateRequest) -> CompanyResponse: 
         company = await self.get_company_id(id=id)
-        if self.owner.result.user_id != company.result.company_owner_id:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="It's not your company")
+        await UserService(db=self.db, user=self.user).id_check(id=company.result.company_owner_id, ownership="company")
         changes = await self.make_changes(data = data)
         if changes: 
             query = update(Companies).where(Companies.company_id == id).values(dict(changes)).returning(Companies)
