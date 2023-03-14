@@ -44,3 +44,11 @@ class UserResponse(BaseModel):
 
 class UserListResponse(BaseModel):
     result: Userlist
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenResponse(BaseModel):
+    result: Token
