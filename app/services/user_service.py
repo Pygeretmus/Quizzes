@@ -88,13 +88,7 @@ class UserService:
             user_password = hashed_password,
             user_name = account.user_name,
             user_registred_at = datetime.datetime.utcnow()
-        query = insert(Users).values(
-            user_email = account.user_email,
-            user_password = hashed_password,
-            user_name = account.user_name,
-            user_registred_at = datetime.datetime.utcnow()
         ).returning(Users)
-        return UserResponse(result=await self.db.fetch_one(query=query))
         return UserResponse(result=await self.db.fetch_one(query=query))
 
 
@@ -116,5 +110,4 @@ class UserService:
                 await self.password_check(changes["user_password"])
                 changes["user_password"] = PasswordHasher().hash(changes["user_password"])
             query = update(Users).where(Users.user_id == id).values(dict(changes)).returning(Users)
-        return UserResponse(result=await self.db.fetch_one(query=query))
         return UserResponse(result=await self.db.fetch_one(query=query))
