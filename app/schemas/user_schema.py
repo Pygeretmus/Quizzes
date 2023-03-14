@@ -35,7 +35,6 @@ class SignUpRequest(SignInRequest):
 class UserUpdateRequest(BaseModel):
     user_name: Optional[str] = ""
     user_password: Optional[str] = ""
-    user_status: Optional[str] = ""
 
 
 class UserResponse(BaseModel):
@@ -49,6 +48,7 @@ class UserListResponse(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+
 
 class TokenResponse(BaseModel):
     result: Token

@@ -6,7 +6,7 @@ Base = declarative_base()
 
 
 class Users(Base):
-    __tablename__ = 'users'
+    __tablename__ = 'Users'
     user_id = Column("user_id", Integer, primary_key=True)
     user_name = Column("user_name", String, nullable=False)
     user_password = Column("user_password", String, nullable=False)
