@@ -24,6 +24,11 @@ class UserService:
         return result
 
 
+    async def id_check(self, id: int, ownership: str):
+        if self.user.result.user_id != id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"It's not your {ownership}")
+
+
     async def password_check(self, password: str):
         if not password:
             raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Password not specified")
@@ -81,16 +86,14 @@ class UserService:
 
 
     async def delete_user(self, id: int) -> str:
-        if self.user.result.user_id != id:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="It's not your account")
+        await self.id_check(id=id, ownership="account")
         query = delete(Users).where(Users.user_id == id)
         await self.db.execute(query=query)
         return "Successfully deleted"
 
 
     async def update_user(self, id: int, data: UserUpdateRequest) -> UserResponse: 
-        if self.user.result.user_id != id:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="It's not your account")
+        await self.id_check(id=id, ownership="account")
         changes = await self.make_changes(data = data)
         if changes: 
             if "user_password" in changes.keys():
