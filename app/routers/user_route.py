@@ -1,10 +1,9 @@
-from core.connections import get_db
-from services.user_service import UserService 
-from databases import Database
-from schemas.user_schema import *
-from fastapi import APIRouter, Depends
-from core.security import get_current_user
-from core.security import get_current_user
+from core.connections       import get_db
+from core.security          import get_current_user
+from databases              import Database
+from fastapi                import APIRouter, Depends
+from schemas.user_schema    import *
+from services.user_service  import UserService 
 
 
 router = APIRouter()
@@ -35,3 +34,6 @@ async def upgrade_user(user_id: int, data:UserUpdateRequest, user: UserResponse 
     return await UserService(db=db, user=user).update_user(id=user_id, data=data)
 
 
+@router.delete("/company/{company_id}/leave")
+async def leave_company(company_id: int, user: UserResponse = Depends(get_current_user), db: Database = Depends(get_db)):
+    return await UserService(db=db, user=user).company_leave(company_id=company_id)

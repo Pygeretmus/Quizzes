@@ -1,11 +1,13 @@
-from databases import Database
-from models.models import Users
-from schemas.user_schema import *
-from sqlalchemy import select, insert, delete, update
-from argon2 import PasswordHasher
-from argon2.exceptions import VerifyMismatchError
-from fastapi import HTTPException, status
-import datetime
+import datetime, random
+
+from argon2                 import PasswordHasher
+from argon2.exceptions      import VerifyMismatchError
+from databases              import Database
+from fastapi                import HTTPException, status
+from models.models          import Users, Members
+from schemas.user_schema    import *
+from sqlalchemy             import select, insert, delete, update
+
 
 
 
@@ -22,6 +24,21 @@ class UserService:
             if items[1]:
                 result[items[0]] = items[1]
         return result
+    
+
+    async def current_user(self, email: str) -> UserResponse:
+        user = await self.get_user_email(email=email)
+        if not user:
+            password = ''
+            for x in range(10):
+                password += random.choice(list('1234567890abcdefghigklmnopqrstuvyxwzABCDEFGHIGKLMNOPQRSTUVYXWZ'))
+            user = await self.create_user(account= SignUpRequest(
+                user_email = email, 
+                user_password = password,
+                user_password_repeat = password,
+                user_name = "User" 
+        ))
+        return user
 
 
     async def id_check(self, id: int):
@@ -48,7 +65,7 @@ class UserService:
         query = select(Users).where(Users.user_email == login.user_email)
         result = await self.db.fetch_one(query=query)
         if result == None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User doesn't exist")
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="This user not found")
         try:
             PasswordHasher().verify(hash=result.user_password, password=login.user_password)
         except VerifyMismatchError:
@@ -65,7 +82,7 @@ class UserService:
         query = select(Users).where(Users.user_id == id)
         result = await self.db.fetch_one(query=query)
         if not result:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User doesn't exist")
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="This user not found")
         return UserResponse(result = User(**result))
     
 
@@ -101,3 +118,9 @@ class UserService:
                 changes["user_password"] = PasswordHasher().hash(changes["user_password"])
             query = update(Users).where(Users.user_id == id).values(dict(changes)).returning(Users)
         return UserResponse(result=await self.db.fetch_one(query=query))
+    
+
+    async def company_leave(self, company_id:int):
+        query = delete(Members).where(Members.company_id==company_id, Members.user_id == self.user.result.user_id)
+        await self.db.execute(query=query)
+        return "success"

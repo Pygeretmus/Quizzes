@@ -5,7 +5,7 @@ async def test_bad_create_user__not_password(ac: AsyncClient):
     payload = {
         "user_password": "",
         "user_password_repeat": "",
-        "user_email": "test@test.com",
+        "user_email": "test@test.test",
         "user_name": "test"
     }
     response = await ac.post("/user", json=payload)
@@ -16,7 +16,7 @@ async def test_bad_create_user__low_password(ac: AsyncClient):
     payload = {
         "user_password": "tet",
         "user_password_repeat": "tet",
-        "user_email": "test@test.com",
+        "user_email": "test@test.test",
         "user_name": "test"
     }
     response = await ac.post("/user", json=payload)
@@ -27,7 +27,7 @@ async def test_bad_create_user__dont_match(ac: AsyncClient):
     payload = {
         "user_password": "test",
         "user_password_repeat": "tess",
-        "user_email": "test@test.com",
+        "user_email": "test@test.test",
         "user_name": "test"
     }
     response = await ac.post("/user", json=payload)
@@ -50,7 +50,7 @@ async def test_create_user_one(ac: AsyncClient):
         "user_password": "test1",
         "user_password_repeat": "test1",
         "user_email": "test1@test.com",
-        "user_name": "test1"
+        "user_name": "test1",
     }
     response = await ac.post("/user", json=payload)
     assert response.status_code == 200
@@ -62,7 +62,7 @@ async def test_bad_create_user__email_exist(ac: AsyncClient):
         "user_password": "testt",
         "user_password_repeat": "testt",
         "user_email": "test1@test.com",
-        "user_name": "test2"
+        "user_name": "test2",
     }
     response = await ac.post("/user", json=payload)
     assert response.status_code == 400
@@ -73,7 +73,7 @@ async def test_create_user_two(ac: AsyncClient):
         "user_password": "test2",
         "user_password_repeat": "test2",
         "user_email": "test2@test.com",
-        "user_name": "test2"
+        "user_name": "test2",
     }
     response = await ac.post("/user", json=payload)
     assert response.status_code == 200
@@ -85,7 +85,7 @@ async def test_create_user_three(ac: AsyncClient):
         "user_password": "test3",
         "user_password_repeat": "test3",
         "user_email": "test3@test.com",
-        "user_name": "test3"
+        "user_name": "test3",
     }
     response = await ac.post("/user", json=payload)
     assert response.status_code == 200
@@ -97,7 +97,7 @@ async def test_create_user_four(ac: AsyncClient):
         "user_password": "test4",
         "user_password_repeat": "test4",
         "user_email": "test4@test.com",
-        "user_name": "test4"
+        "user_name": "test4",
     }
     response = await ac.post("/user", json=payload)
     assert response.status_code == 200
@@ -109,11 +109,12 @@ async def test_create_user_five(ac: AsyncClient):
         "user_password": "test5",
         "user_password_repeat": "test5",
         "user_email": "test5@test.com",
-        "user_name": "test5"
+        "user_name": "test5",
     }
     response = await ac.post("/user", json=payload)
     assert response.status_code == 200
     assert response.json().get("result").get("user_id") == 5
+
 
 # =================================
 
@@ -184,6 +185,7 @@ async def test_bad_auth_me(ac: AsyncClient):
     }
     response = await ac.get("/auth/me", headers=headers)
     assert response.status_code == 401
+
 
 # =====================================================
 

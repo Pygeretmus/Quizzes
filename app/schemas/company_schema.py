@@ -1,6 +1,6 @@
-from pydantic import BaseModel
-from typing import Optional
-from schemas.user_schema import User
+from pydantic               import BaseModel
+from typing                 import Optional
+
 
 
 class Company(BaseModel):
@@ -8,8 +8,7 @@ class Company(BaseModel):
     company_name: str
     company_description: Optional[str] = ""
     company_owner_id: int
-    users: Optional[list[User]] = []
-
+    
     class Config:
         orm_mode = True
 
@@ -34,3 +33,16 @@ class CompanyResponse(BaseModel):
 
 class CompanyListResponse(BaseModel):
     result: Companylist
+
+
+class Member(BaseModel):
+    user_id: int
+    company_id: int
+
+
+class MembersList(BaseModel):
+    users: list[Member]
+
+
+class MembersListResponse(BaseModel):
+    result: MembersList

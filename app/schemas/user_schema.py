@@ -1,6 +1,7 @@
-from pydantic import BaseModel, EmailStr
-from typing import Optional
 import datetime
+
+from pydantic               import BaseModel, EmailStr
+from typing                 import Optional
 
 
 class User(BaseModel):
@@ -8,7 +9,7 @@ class User(BaseModel):
     user_name: str
     user_email: EmailStr
     user_status: Optional[str]
-    user_registred_at: datetime.datetime 
+    user_registred_at: datetime.datetime
 
     class Config:
         orm_mode = True
