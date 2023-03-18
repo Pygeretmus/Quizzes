@@ -1,7 +1,7 @@
 from httpx import AsyncClient
 
 
-async def test_create_company_unauthorized(ac: AsyncClient):
+async def test_company_create_unauthorized(ac: AsyncClient):
     payload = {
         "company_name": "company1",
         "company_description": "string"
@@ -10,7 +10,7 @@ async def test_create_company_unauthorized(ac: AsyncClient):
     assert response.status_code == 403
 
 
-async def test_bad_create_company__no_name(ac: AsyncClient, users_tokens):
+async def test_bad_company_create__no_name(ac: AsyncClient, users_tokens):
     headers = {
         "Authorization": f"Bearer {users_tokens['test1@test.com']}",
     }
@@ -22,7 +22,7 @@ async def test_bad_create_company__no_name(ac: AsyncClient, users_tokens):
     assert response.status_code == 422
 
 
-async def test_create_company_one(users_tokens, ac: AsyncClient):
+async def test_company_create_one(users_tokens, ac: AsyncClient):
     headers = {
         "Authorization": f"Bearer {users_tokens['test1@test.com']}",
     }
@@ -35,7 +35,7 @@ async def test_create_company_one(users_tokens, ac: AsyncClient):
     assert response.json().get("result").get("company_id") == 1
 
 
-async def test_create_company_two(users_tokens, ac: AsyncClient):
+async def test_company_create_two(users_tokens, ac: AsyncClient):
     headers = {
         "Authorization": f"Bearer {users_tokens['test2@test.com']}",
     }
@@ -47,7 +47,7 @@ async def test_create_company_two(users_tokens, ac: AsyncClient):
     assert response.json().get("result").get("company_id") == 2
 
 
-async def test_create_company_three(users_tokens, ac: AsyncClient):
+async def test_company_create_three(users_tokens, ac: AsyncClient):
     headers = {
         "Authorization": f"Bearer {users_tokens['test3@test.com']}",
     }
@@ -100,7 +100,7 @@ async def test_get_company_by_id_tw(users_tokens, ac: AsyncClient):
     assert response.json().get("result").get("company_owner_id") == 2
 
 
-async def test_bad_update_company__unauthorized(ac: AsyncClient):
+async def test_bad_company_update__unauthorized(ac: AsyncClient):
     payload = {
         "company_name": "company_name_1_NEW",
         "company_description": "company_description_1_NEW"
@@ -109,7 +109,7 @@ async def test_bad_update_company__unauthorized(ac: AsyncClient):
     assert response.status_code == 403
 
 
-async def test_bad_update_company__not_found(users_tokens, ac: AsyncClient):
+async def test_bad_company_update__not_found(users_tokens, ac: AsyncClient):
     headers = {
         "Authorization": f"Bearer {users_tokens['test1@test.com']}",
     }
@@ -121,7 +121,7 @@ async def test_bad_update_company__not_found(users_tokens, ac: AsyncClient):
     assert response.status_code == 404
 
 
-async def test_bad_update_company__not_your_company(users_tokens, ac: AsyncClient):
+async def test_bad_company_update__not_your_company(users_tokens, ac: AsyncClient):
     headers = {
         "Authorization": f"Bearer {users_tokens['test1@test.com']}",
     }
@@ -133,7 +133,7 @@ async def test_bad_update_company__not_your_company(users_tokens, ac: AsyncClien
     assert response.status_code == 403
 
 
-async def test_update_company(users_tokens, ac: AsyncClient):
+async def test_company_update(users_tokens, ac: AsyncClient):
     headers = {
         "Authorization": f"Bearer {users_tokens['test1@test.com']}",
     }
@@ -157,7 +157,7 @@ async def test_get_company_by_id_one_updated(users_tokens, ac: AsyncClient):
     assert response.json().get("result").get("company_owner_id") == 1
 
 
-async def test_bad_delete_company_one__user_not_owner(users_tokens, ac: AsyncClient):
+async def test_bad_company_delete_one__user_not_owner(users_tokens, ac: AsyncClient):
     headers = {
         "Authorization": f"Bearer {users_tokens['test2@test.com']}",
     }
@@ -165,7 +165,7 @@ async def test_bad_delete_company_one__user_not_owner(users_tokens, ac: AsyncCli
     assert response.status_code == 403
 
 
-async def test_delete_company_three(users_tokens, ac: AsyncClient):
+async def test_company_delete_three(users_tokens, ac: AsyncClient):
     headers = {
         "Authorization": f"Bearer {users_tokens['test3@test.com']}",
     }

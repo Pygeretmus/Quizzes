@@ -15,7 +15,7 @@ class User(BaseModel):
         orm_mode = True
 
 
-class Userlist(BaseModel):
+class UserList(BaseModel):
     users: list[User]
 
 
@@ -40,10 +40,12 @@ class UserUpdateRequest(BaseModel):
 
 class UserResponse(BaseModel):
     result: User
+    detail: str
 
 
 class UserListResponse(BaseModel):
-    result: Userlist
+    result: UserList
+    detail: str
 
 
 class Token(BaseModel):
@@ -53,3 +55,4 @@ class Token(BaseModel):
 
 class TokenResponse(BaseModel):
     result: Token
+    detail: str

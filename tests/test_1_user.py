@@ -1,7 +1,7 @@
 from httpx import AsyncClient
 
 
-async def test_bad_create_user__not_password(ac: AsyncClient):
+async def test_bad_user_create__not_password(ac: AsyncClient):
     payload = {
         "user_password": "",
         "user_password_repeat": "",
@@ -12,7 +12,7 @@ async def test_bad_create_user__not_password(ac: AsyncClient):
     assert response.status_code == 422
 
 
-async def test_bad_create_user__low_password(ac: AsyncClient):
+async def test_bad_user_create__low_password(ac: AsyncClient):
     payload = {
         "user_password": "tet",
         "user_password_repeat": "tet",
@@ -23,7 +23,7 @@ async def test_bad_create_user__low_password(ac: AsyncClient):
     assert response.status_code == 422
 
 
-async def test_bad_create_user__dont_match(ac: AsyncClient):
+async def test_bad_user_create__dont_match(ac: AsyncClient):
     payload = {
         "user_password": "test",
         "user_password_repeat": "tess",
@@ -34,7 +34,7 @@ async def test_bad_create_user__dont_match(ac: AsyncClient):
     assert response.status_code == 422
 
 
-async def test_bad_create_user__no_valid_email(ac: AsyncClient):
+async def test_bad_user_create__no_valid_email(ac: AsyncClient):
     payload = {
         "user_password": "test",
         "user_password_repeat": "tess",
@@ -45,7 +45,7 @@ async def test_bad_create_user__no_valid_email(ac: AsyncClient):
     assert response.status_code == 422
 
 
-async def test_create_user_one(ac: AsyncClient):
+async def test_user_create_one(ac: AsyncClient):
     payload = {
         "user_password": "test1",
         "user_password_repeat": "test1",
@@ -57,7 +57,7 @@ async def test_create_user_one(ac: AsyncClient):
     assert response.json().get("result").get("user_id") == 1
 
 
-async def test_bad_create_user__email_exist(ac: AsyncClient):
+async def test_bad_user_create__email_exist(ac: AsyncClient):
     payload = {
         "user_password": "testt",
         "user_password_repeat": "testt",
@@ -68,7 +68,7 @@ async def test_bad_create_user__email_exist(ac: AsyncClient):
     assert response.status_code == 400
 
 
-async def test_create_user_two(ac: AsyncClient):
+async def test_user_create_two(ac: AsyncClient):
     payload = {
         "user_password": "test2",
         "user_password_repeat": "test2",
@@ -80,7 +80,7 @@ async def test_create_user_two(ac: AsyncClient):
     assert response.json().get("result").get("user_id") == 2
 
 
-async def test_create_user_three(ac: AsyncClient):
+async def test_user_create_three(ac: AsyncClient):
     payload = {
         "user_password": "test3",
         "user_password_repeat": "test3",
@@ -92,7 +92,7 @@ async def test_create_user_three(ac: AsyncClient):
     assert response.json().get("result").get("user_id") == 3
 
 
-async def test_create_user_four(ac: AsyncClient):
+async def test_user_create_four(ac: AsyncClient):
     payload = {
         "user_password": "test4",
         "user_password_repeat": "test4",
@@ -104,7 +104,7 @@ async def test_create_user_four(ac: AsyncClient):
     assert response.json().get("result").get("user_id") == 4
 
 
-async def test_create_user_five(ac: AsyncClient):
+async def test_user_create_five(ac: AsyncClient):
     payload = {
         "user_password": "test5",
         "user_password_repeat": "test5",
@@ -190,7 +190,7 @@ async def test_bad_auth_me(ac: AsyncClient):
 # =====================================================
 
 
-async def test_get_users_list(ac: AsyncClient, users_tokens):
+async def test_user_get_all_list(ac: AsyncClient, users_tokens):
     headers = {
         "Authorization": f"Bearer {users_tokens['test1@test.com']}",
     }
@@ -199,7 +199,7 @@ async def test_get_users_list(ac: AsyncClient, users_tokens):
     assert len(response.json().get("result").get("users")) == 5
 
 
-async def test_get_users_list_unauth(ac: AsyncClient):
+async def test_user_get_all_list_unauth(ac: AsyncClient):
     response = await ac.get("/users")
     assert response.status_code == 403
 
@@ -229,7 +229,7 @@ async def test_bad_get_user_by_id__not_found(ac: AsyncClient, users_tokens):
     assert response.status_code == 404
 
 
-async def test_bad_update_user_one__not_your_acc(ac: AsyncClient, users_tokens):
+async def test_bad_user_update_one__not_your_acc(ac: AsyncClient, users_tokens):
     payload = {
         "user_name": "test1NEW",
     }
@@ -241,7 +241,7 @@ async def test_bad_update_user_one__not_your_acc(ac: AsyncClient, users_tokens):
     assert response.json().get("detail") == "It's not your account"
 
 
-async def test_update_user_one(ac: AsyncClient, users_tokens):
+async def test_user_update_one(ac: AsyncClient, users_tokens):
     payload = {
         "user_name": "test1NEW",
     }
@@ -265,7 +265,7 @@ async def test_get_user_by_id_updated(ac: AsyncClient, users_tokens):
     assert response.json().get('result').get('user_password') == None
 
 
-async def test_bad_delete_user_five__not_your_acc(ac: AsyncClient, users_tokens):
+async def test_bad_user_delete_five__not_your_acc(ac: AsyncClient, users_tokens):
     headers = {
         "Authorization": f"Bearer {users_tokens['test1@test.com']}",
     }
@@ -274,7 +274,7 @@ async def test_bad_delete_user_five__not_your_acc(ac: AsyncClient, users_tokens)
     assert response.json().get("detail") == "It's not your account"
 
 
-async def test_delete_user_five(ac: AsyncClient, users_tokens):
+async def test_user_delete_five(ac: AsyncClient, users_tokens):
     headers = {
         "Authorization": f"Bearer {users_tokens['test5@test.com']}",
     }
@@ -282,7 +282,7 @@ async def test_delete_user_five(ac: AsyncClient, users_tokens):
     assert response.status_code == 200
 
 
-async def test_get_users_list_after_delete(ac: AsyncClient, users_tokens):
+async def test_user_get_all_list_after_delete(ac: AsyncClient, users_tokens):
     headers = {
         "Authorization": f"Bearer {users_tokens['test1@test.com']}",
     }

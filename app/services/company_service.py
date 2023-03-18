@@ -21,34 +21,34 @@ class CompanyService:
         return result
 
 
-    async def owner_check(self, id: int):
-        company = await self.get_company_id(id=id)
+    async def owner_check(self, company_id: int):
+        company = await self.company_get_id(company_id=company_id)
         if self.user.result.user_id != company.result.company_owner_id:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="it's not your company")
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="It's not your company")
 
 
-    async def get_companies(self) -> CompanyListResponse:
+    async def company_get_all(self) -> CompanyListResponse:
         query = select(Companies)
         result = await self.db.fetch_all(query=query)
-        return CompanyListResponse(result = Companylist(companies = [Company(**item) for item in result]))
+        return CompanyListResponse(detail="success", result = CompanyList(companies = [Company(**item) for item in result]))
 
 
-    async def get_company_id(self, id: int) -> CompanyResponse:
-        query = select(Companies).where(Companies.company_id == id)
+    async def company_get_id(self, company_id: int) -> CompanyResponse:
+        query = select(Companies).where(Companies.company_id == company_id)
         result = await self.db.fetch_one(query=query)
         if not result:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="This company not found")
-        return CompanyResponse(result = Company(**result))
+        return CompanyResponse(detail="success", result = Company(**result))
     
 
-    async def delete_company(self, id: int) -> str:
-        await self.owner_check(id=id)
-        query = delete(Companies).where(Companies.company_id == id)
+    async def company_delete(self, company_id: int) -> dict:
+        await self.owner_check(company_id=company_id)
+        query = delete(Companies).where(Companies.company_id == company_id)
         await self.db.execute(query=query)
-        return "Successfully deleted"
+        return {"detail": "success"}
 
 
-    async def create_company(self, data: CompanyCreateRequest) -> CompanyResponse:
+    async def company_create(self, data: CompanyCreateRequest) -> CompanyResponse:
         if not data.company_name:
             raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Name required")
         query = insert(Companies).values(
@@ -58,26 +58,27 @@ class CompanyService:
             ).returning(Companies)
         result = await self.db.fetch_one(query=query)
         await self.db.execute(query=insert(Members).values(user_id = self.user.result.user_id, company_id = result.company_id))
-        return CompanyResponse(result=result)
+        return CompanyResponse(detail="success", result=Company(**result))
 
 
-    async def update_company(self, id: int, data: CompanyUpdateRequest) -> CompanyResponse: 
-        await self.owner_check(id=id)
+    async def company_update(self, company_id: int, data: CompanyUpdateRequest) -> CompanyResponse: 
+        await self.owner_check(company_id=company_id)
         changes = await self.make_changes(data = data)
         if changes: 
-            query = update(Companies).where(Companies.company_id == id).values(dict(changes)).returning(Companies)
-        return CompanyResponse(result=await self.db.fetch_one(query=query))
+            query = update(Companies).where(Companies.company_id == company_id).values(dict(changes)).returning(Companies)
+        result = await self.db.fetch_one(query=query)
+        return CompanyResponse(detail="success", result=Company(**result))
     
 
-    async def company_members(self, company_id: int): 
-        await self.owner_check(id=company_id)
+    async def company_members(self, company_id: int) -> MembersListResponse: 
+        await self.owner_check(company_id=company_id)
         query = select(Members).where(Members.company_id==company_id)
         result = await self.db.fetch_all(query=query)
-        return MembersListResponse(result=MembersList(users=[Member(**item) for item in result]))
+        return MembersListResponse(detail="success", result=MembersList(users=[Member(**item) for item in result]))
     
 
-    async def kick_member(self, company_id:int, user_id:int):
-        await self.owner_check(id=company_id)
+    async def member_kick(self, company_id:int, user_id:int) -> MembersListResponse:
+        await self.owner_check(company_id=company_id)
         query = delete(Members).where(Members.company_id==company_id, Members.user_id == user_id)
-        await self.db.execute(query=query)
-        return "success"
+        await self.db.fetch_all(query=query)
+        return await self.company_members(company_id=company_id)

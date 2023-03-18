@@ -33,9 +33,9 @@ async def get_current_user(token: str = Depends(auth_token_schema), db: Database
     if not payload:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token is not valid")
     try:
-        email = payload["https://example.com/email"]
+        user_email = payload["https://example.com/email"]
     except KeyError:
-        email = payload["sub"]
-        if not email:
+        user_email = payload["sub"]
+        if not user_email:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Email is not valid")
-    return await UserService(db=db).current_user(email=email)
+    return await UserService(db=db).current_user(user_email=user_email)

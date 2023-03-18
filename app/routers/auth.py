@@ -14,7 +14,7 @@ router = APIRouter()
 @router.post('/login', response_model=TokenResponse)
 async def autentification(login: SignInRequest, db: Database =Depends(get_db)) -> TokenResponse:
     await UserService(db=db).sign_in_verify(login=login)
-    return TokenResponse(result = Token(access_token=create_access_token({'sub': login.user_email}), token_type="Bearer"))
+    return TokenResponse(detail="success", result = Token(access_token=create_access_token({'sub': login.user_email}), token_type="Bearer"))
 
 
 @router.get('/me', response_model=UserResponse)

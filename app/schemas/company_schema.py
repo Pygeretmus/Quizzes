@@ -13,7 +13,7 @@ class Company(BaseModel):
         orm_mode = True
 
 
-class Companylist(BaseModel):
+class CompanyList(BaseModel):
     companies: list[Company]
 
 
@@ -29,10 +29,12 @@ class CompanyUpdateRequest(BaseModel):
 
 class CompanyResponse(BaseModel):
     result: Company
+    detail: str
 
 
 class CompanyListResponse(BaseModel):
-    result: Companylist
+    result: CompanyList
+    detail: str
 
 
 class Member(BaseModel):
@@ -46,3 +48,4 @@ class MembersList(BaseModel):
 
 class MembersListResponse(BaseModel):
     result: MembersList
+    detail: str
