@@ -49,6 +49,7 @@ def upgrade():
     sa.Column('useless_id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('company_id', sa.Integer(), nullable=False),
+    sa.Column('role', sa.String(), nullable=False),
     sa.ForeignKeyConstraint(['company_id'], ['Companies.company_id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['user_id'], ['Users.user_id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('useless_id')

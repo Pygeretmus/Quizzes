@@ -11,12 +11,12 @@ from schemas.user_schema    import *
 router = APIRouter()
 
 
-@router.post('/login', response_model=TokenResponse)
+@router.post('/login/', response_model=TokenResponse)
 async def autentification(login: SignInRequest, db: Database =Depends(get_db)) -> TokenResponse:
     await UserService(db=db).sign_in_verify(login=login)
     return TokenResponse(detail="success", result = Token(access_token=create_access_token({'sub': login.user_email}), token_type="Bearer"))
 
 
-@router.get('/me', response_model=UserResponse)
+@router.get('/me/', response_model=UserResponse)
 async def information(user: UserResponse = Depends(get_current_user)) -> UserResponse:
     return user

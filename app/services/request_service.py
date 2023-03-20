@@ -42,12 +42,7 @@ class RequestService:
     
 
     async def request_company_all(self, company_id: int) -> RequestListResponse:
-        query = select(Companies).where(Companies.company_id == company_id)
-        result = await self.db.fetch_one(query=query)
-        if not result:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="This company not found")
-        if self.user.result.user_id != result.company_owner_id:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="It's not your company")
+        await self.owner_check(company_id=company_id)
         query = select(Requests).where(Requests.to_company_id==company_id)
         result = await self.db.fetch_all(query=query)
         return RequestListResponse(detail='success', result=RequestList(requests=[Request(**item) for item in result]))
@@ -67,7 +62,7 @@ class RequestService:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="It's not your request")
         query = delete(Requests).where(Requests.request_id==request_id)
         await self.db.execute(query=query)
-        return Response(detail="success")
+        return Response(detail="success") 
 
 
     async def request_check(self, request_id:int) -> RequestResponse:
@@ -81,11 +76,19 @@ class RequestService:
 
     async def request_accept(self, request_id: int) -> Response:
         request = await self.request_check(request_id=request_id)
-        query = insert(Members).values(user_id = request.result.from_user_id, company_id = request.result.to_company_id)
+        query = insert(Members).values(user_id = request.result.from_user_id, company_id = request.result.to_company_id, role="user").returning(Members)
         await self.db.execute(query=query)
         return Response(detail="success")
 
 
     async def request_decline(self, request_id: int) -> Response:
-        await self.request_check(request_id=request_id)
+        request = await self.request_check(request_id=request_id)
         return Response(detail="success")
+        
+
+    async def owner_check(self, company_id: int):
+        company = await self.company_get_id(company_id=company_id)
+        if company.result.company_owner_id != self.user.result.user_id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="It's not your company")
+        
+        

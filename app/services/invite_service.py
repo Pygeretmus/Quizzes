@@ -24,10 +24,10 @@ class InviteService:
 
 
     async def invite_send(self, payload: InviteCreateRequest) -> InviteResponse:
+        await self.owner_check(company_id=payload.from_company_id)
         query = select(Users).where(Users.user_id == payload.to_user_id)
         if not await self.db.fetch_one(query=query):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="This user not found")
-        await self.owner_check(company_id=payload.from_company_id)
         if await self.db.fetch_one(query=select(Invites).where(Invites.to_user_id==payload.to_user_id, Invites.from_company_id == payload.from_company_id)):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invite already exist")
         if await self.db.fetch_one(query=select(Members).where(Members.user_id==payload.to_user_id, Members.company_id == payload.from_company_id)):
@@ -76,7 +76,7 @@ class InviteService:
 
     async def invite_accept(self, invite_id: int) -> Response:
         invite = await self.check_invite(invite_id=invite_id)
-        query = insert(Members).values(user_id = invite.result.to_user_id, company_id = invite.result.from_company_id)
+        query = insert(Members).values(user_id = invite.result.to_user_id, company_id = invite.result.from_company_id, role="user")
         await self.db.execute(query=query)
         return Response(detail="success")
 

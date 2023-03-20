@@ -41,6 +41,11 @@ class CompanyListResponse(Response):
 class Member(BaseModel):
     user_id: int
     company_id: int
+    role: str
+
+
+class MemberResponse(Response):
+    result: Member
 
 
 class MembersList(BaseModel):
@@ -49,3 +54,7 @@ class MembersList(BaseModel):
 
 class MembersListResponse(Response):
     result: MembersList
+
+
+class AdminUpgrade(BaseModel):
+    user_id: int
