@@ -1,6 +1,7 @@
-from pydantic import BaseModel, EmailStr
-from typing import Optional
 import datetime
+
+from pydantic               import BaseModel, EmailStr
+from typing                 import Optional
 
 
 class User(BaseModel):
@@ -8,13 +9,13 @@ class User(BaseModel):
     user_name: str
     user_email: EmailStr
     user_status: Optional[str]
-    user_registred_at: datetime.datetime 
+    user_registred_at: datetime.datetime
 
     class Config:
         orm_mode = True
 
 
-class Userlist(BaseModel):
+class UserList(BaseModel):
     users: list[User]
 
 
@@ -37,12 +38,16 @@ class UserUpdateRequest(BaseModel):
     user_password: Optional[str] = None
 
 
-class UserResponse(BaseModel):
+class Response(BaseModel):
+    detail: str
+
+
+class UserResponse(Response):
     result: User
 
 
-class UserListResponse(BaseModel):
-    result: Userlist
+class UserListResponse(Response):
+    result: UserList
 
 
 class Token(BaseModel):
@@ -50,5 +55,7 @@ class Token(BaseModel):
     token_type: str
 
 
-class TokenResponse(BaseModel):
+class TokenResponse(Response):
     result: Token
+
+
