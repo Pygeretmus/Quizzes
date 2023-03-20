@@ -38,14 +38,16 @@ class UserUpdateRequest(BaseModel):
     user_password: Optional[str] = None
 
 
-class UserResponse(BaseModel):
+class Response(BaseModel):
+    detail: str
+
+
+class UserResponse(Response):
     result: User
-    detail: str
 
 
-class UserListResponse(BaseModel):
+class UserListResponse(Response):
     result: UserList
-    detail: str
 
 
 class Token(BaseModel):
@@ -53,6 +55,7 @@ class Token(BaseModel):
     token_type: str
 
 
-class TokenResponse(BaseModel):
+class TokenResponse(Response):
     result: Token
-    detail: str
+
+

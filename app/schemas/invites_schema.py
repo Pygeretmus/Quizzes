@@ -21,11 +21,13 @@ class InviteCreateRequest(BaseModel):
     invite_message: str
 
 
-class InviteResponse(BaseModel):
+class Response(BaseModel):
+    detail: str
+
+
+class InviteResponse(Response):
     result: Invite
-    detail: str
 
 
-class InviteListResponse(BaseModel):
+class InviteListResponse(Response):
     result: InviteList
-    detail: str

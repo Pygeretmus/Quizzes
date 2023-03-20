@@ -19,8 +19,8 @@ async def get_user_by_id(user_id:int, user: UserResponse = Depends(get_current_u
     return await UserService(db=db).user_get_id(user_id=user_id)
 
 
-@router.delete('/user/{user_id}', response_model=dict)
-async def user_delete_id(user_id: int, user: UserResponse = Depends(get_current_user), db: Database = Depends(get_db)) -> dict:
+@router.delete('/user/{user_id}', response_model=Response)
+async def user_delete_id(user_id: int, user: UserResponse = Depends(get_current_user), db: Database = Depends(get_db)) -> Response:
     return await UserService(db=db, user=user).user_delete(user_id=user_id)
 
 
@@ -34,6 +34,6 @@ async def upgrade_user(user_id: int, data:UserUpdateRequest, user: UserResponse 
     return await UserService(db=db, user=user).user_update(user_id=user_id, data=data)
 
 
-@router.delete("/company/{company_id}/leave", response_model=dict)
-async def leave_company(company_id: int, user: UserResponse = Depends(get_current_user), db: Database = Depends(get_db)) -> dict:
+@router.delete("/company/{company_id}/leave", response_model=Response)
+async def leave_company(company_id: int, user: UserResponse = Depends(get_current_user), db: Database = Depends(get_db)) -> Response:
     return await UserService(db=db, user=user).company_leave(company_id=company_id)

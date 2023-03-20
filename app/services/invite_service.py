@@ -58,12 +58,12 @@ class InviteService:
         return InviteResponse(detail= "success", result=Invite(**result))
 
 
-    async def invite_cancel(self, invite_id: int) -> InviteListResponse:
+    async def invite_cancel(self, invite_id: int) -> Response:
         invite = await self.get_invite_id(invite_id=invite_id)
         await self.owner_check(company_id=invite.result.from_company_id)
         query = delete(Invites).where(Invites.invite_id==invite_id)
         await self.db.execute(query=query)
-        return await self.invite_company_all(company_id = invite.result.from_company_id)
+        return Response(detail="success")
     
 
     async def check_invite(self, invite_id:int) -> InviteResponse:
@@ -74,13 +74,13 @@ class InviteService:
         return invite
 
 
-    async def invite_accept(self, invite_id: int) -> dict:
+    async def invite_accept(self, invite_id: int) -> Response:
         invite = await self.check_invite(invite_id=invite_id)
         query = insert(Members).values(user_id = invite.result.to_user_id, company_id = invite.result.from_company_id)
         await self.db.execute(query=query)
-        return {"detail": "success"}
+        return Response(detail="success")
 
 
-    async def invite_decline(self, invite_id: int) -> dict:
+    async def invite_decline(self, invite_id: int) -> Response:
         await self.check_invite(invite_id=invite_id)
-        return {"detail": "success"} 
+        return Response(detail="success")

@@ -26,15 +26,16 @@ class CompanyUpdateRequest(BaseModel):
     company_name: Optional[str] = None
     company_description: Optional[str] = None
 
+class Response(BaseModel):
+    detail: str
 
-class CompanyResponse(BaseModel):
+
+class CompanyResponse(Response):
     result: Company
-    detail: str
 
 
-class CompanyListResponse(BaseModel):
+class CompanyListResponse(Response):
     result: CompanyList
-    detail: str
 
 
 class Member(BaseModel):
@@ -46,6 +47,5 @@ class MembersList(BaseModel):
     users: list[Member]
 
 
-class MembersListResponse(BaseModel):
+class MembersListResponse(Response):
     result: MembersList
-    detail: str

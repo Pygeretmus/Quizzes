@@ -20,8 +20,8 @@ async def get_company_by_id(company_id:int, user: UserResponse = Depends(get_cur
     return await CompanyService(db=db).company_get_id(company_id=company_id)
 
 
-@router.delete('/company/{company_id}', response_model=dict)
-async def delete_company_by_id(company_id: int, user: UserResponse = Depends(get_current_user), db: Database = Depends(get_db)) -> dict:
+@router.delete('/company/{company_id}', response_model=Response)
+async def delete_company_by_id(company_id: int, user: UserResponse = Depends(get_current_user), db: Database = Depends(get_db)) -> Response:
     return await CompanyService(db=db, user=user).company_delete(company_id=company_id)
 
 
@@ -40,6 +40,6 @@ async def members_company(company_id: int, user: UserResponse = Depends(get_curr
     return await CompanyService(db=db, user=user).company_members(company_id=company_id)
 
 
-@router.delete("/company/{company_id}/member/{user_id}", response_model=MembersListResponse)
-async def kick_member(company_id: int, user_id: int, user: UserResponse = Depends(get_current_user), db: Database = Depends(get_db)) -> MembersListResponse:
+@router.delete("/company/{company_id}/member/{user_id}", response_model=Response)
+async def kick_member(company_id: int, user_id: int, user: UserResponse = Depends(get_current_user), db: Database = Depends(get_db)) -> Response:
     return await CompanyService(db=db, user=user).member_kick(company_id=company_id, user_id=user_id)

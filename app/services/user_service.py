@@ -101,11 +101,11 @@ class UserService:
         return UserResponse(detail="success", result=await self.db.fetch_one(query=query))
 
 
-    async def user_delete(self, user_id: int) -> dict:
+    async def user_delete(self, user_id: int) -> Response:
         await self.id_check(user_id=user_id)
         query = delete(Users).where(Users.user_id == user_id)
         await self.db.execute(query=query)
-        return {"detail": "success"}
+        return Response(detail="success")
 
 
     async def user_update(self, user_id: int, data: UserUpdateRequest) -> UserResponse: 
@@ -120,7 +120,7 @@ class UserService:
         return UserResponse(detail="success", result=User(**result))
     
 
-    async def company_leave(self, company_id:int) -> dict:
+    async def company_leave(self, company_id:int) -> Response:
         query = delete(Members).where(Members.company_id==company_id, Members.user_id == self.user.result.user_id)
         await self.db.execute(query=query)
-        return {"detail":"success"}
+        return Response(detail="success")

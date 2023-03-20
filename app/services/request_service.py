@@ -61,13 +61,13 @@ class RequestService:
         return RequestResponse(detail="success", result=Request(**result))
 
 
-    async def request_cancel(self, request_id: int) -> RequestListResponse:
+    async def request_cancel(self, request_id: int) -> Response:
         request = await self.request_get_id(request_id=request_id)
         if request.result.from_user_id != self.user.result.user_id:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="It's not your request")
         query = delete(Requests).where(Requests.request_id==request_id)
         await self.db.execute(query=query)
-        return await self.request_my_all() 
+        return Response(detail="success")
 
 
     async def request_check(self, request_id:int) -> RequestResponse:
@@ -79,13 +79,13 @@ class RequestService:
         return request
 
 
-    async def request_accept(self, request_id: int) -> dict:
+    async def request_accept(self, request_id: int) -> Response:
         request = await self.request_check(request_id=request_id)
         query = insert(Members).values(user_id = request.result.from_user_id, company_id = request.result.to_company_id)
         await self.db.execute(query=query)
-        return {"detail":"success"} 
+        return Response(detail="success")
 
 
-    async def request_decline(self, request_id: int) -> dict:
+    async def request_decline(self, request_id: int) -> Response:
         await self.request_check(request_id=request_id)
-        return {"detail":"success"} 
+        return Response(detail="success")

@@ -41,11 +41,11 @@ class CompanyService:
         return CompanyResponse(detail="success", result = Company(**result))
     
 
-    async def company_delete(self, company_id: int) -> dict:
+    async def company_delete(self, company_id: int) -> Response:
         await self.owner_check(company_id=company_id)
         query = delete(Companies).where(Companies.company_id == company_id)
         await self.db.execute(query=query)
-        return {"detail": "success"}
+        return Response(detail="success")
 
 
     async def company_create(self, data: CompanyCreateRequest) -> CompanyResponse:
@@ -77,8 +77,8 @@ class CompanyService:
         return MembersListResponse(detail="success", result=MembersList(users=[Member(**item) for item in result]))
     
 
-    async def member_kick(self, company_id:int, user_id:int) -> MembersListResponse:
+    async def member_kick(self, company_id:int, user_id:int) -> Response:
         await self.owner_check(company_id=company_id)
         query = delete(Members).where(Members.company_id==company_id, Members.user_id == user_id)
         await self.db.fetch_all(query=query)
-        return await self.company_members(company_id=company_id)
+        return Response(detail="success")

@@ -24,16 +24,16 @@ async def company_invites(company_id: int, user:UserResponse=Depends(get_current
     return await InviteService(db=db, user=user).invite_company_all(company_id=company_id)
 
 
-@router.delete("/{invite_id}", response_model=InviteListResponse)
-async def cancel_invite(invite_id: int, user:UserResponse=Depends(get_current_user), db:Database=Depends(get_db)) -> InviteListResponse:
+@router.delete("/{invite_id}", response_model=Response)
+async def cancel_invite(invite_id: int, user:UserResponse=Depends(get_current_user), db:Database=Depends(get_db)) -> Response:
     return await InviteService(db=db, user=user).invite_cancel(invite_id=invite_id)
 
 
-@router.get("/{invite_id}/accept", response_model=dict)
-async def accept_invite(invite_id: int, user:UserResponse=Depends(get_current_user), db:Database=Depends(get_db)) -> dict:
+@router.get("/{invite_id}/accept", response_model=Response)
+async def accept_invite(invite_id: int, user:UserResponse=Depends(get_current_user), db:Database=Depends(get_db)) -> Response:
     return await InviteService(db=db, user=user).invite_accept(invite_id=invite_id)
 
 
-@router.get("/{invite_id}/decline", response_model=dict)
-async def decline_invite(invite_id: int, user:UserResponse=Depends(get_current_user), db:Database=Depends(get_db)) -> dict:
+@router.get("/{invite_id}/decline", response_model=Response)
+async def decline_invite(invite_id: int, user:UserResponse=Depends(get_current_user), db:Database=Depends(get_db)) -> Response:
     return await InviteService(db=db, user=user).invite_decline(invite_id=invite_id)

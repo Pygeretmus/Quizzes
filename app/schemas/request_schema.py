@@ -20,11 +20,13 @@ class RequestCreateRequest(BaseModel):
     request_message: str
 
 
-class RequestResponse(BaseModel):
+class Response(BaseModel):
+    detail: str
+
+
+class RequestResponse(Response):
     result: Request
-    detail: str
 
 
-class RequestListResponse(BaseModel):
+class RequestListResponse(Response):
     result: RequestList
-    detail: str
