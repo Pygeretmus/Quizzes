@@ -32,8 +32,8 @@ class UserService:
             password = ''
             for x in range(10):
                 password += random.choice(list('1234567890abcdefghigklmnopqrstuvyxwzABCDEFGHIGKLMNOPQRSTUVYXWZ'))
-            user = await self.user_create(account= SignUpRequest(
-                user_email = email, 
+            user = await self.user_create(data= SignUpRequest(
+                user_email = user_email, 
                 user_password = password,
                 user_password_repeat = password,
                 user_name = "User" 
@@ -115,9 +115,9 @@ class UserService:
             if "user_password" in changes.keys():
                 await self.password_check(changes["user_password"])
                 changes["user_password"] = PasswordHasher().hash(changes["user_password"])
-            query = update(Users).where(Users.user_id == user_id).values(dict(changes)).returning(Users)
-        result = await self.db.fetch_one(query=query)
-        return UserResponse(detail="success", result=User(**result))
+            query = update(Users).where(Users.user_id == user_id).values(dict(changes))
+            await self.db.execute(query=query)
+        return await self.user_get_id(user_id=user_id)
     
 
     async def company_leave(self, company_id:int) -> Response:

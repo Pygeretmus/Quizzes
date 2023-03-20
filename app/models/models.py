@@ -44,3 +44,4 @@ class Members(Base):
     useless_id          = Column("useless_id", Integer, primary_key=True)
     user_id             = Column("user_id", ForeignKey('Users.user_id', ondelete='CASCADE'), nullable=False)
     company_id          = Column("company_id", ForeignKey('Companies.company_id', ondelete='CASCADE'), nullable=False)
+    role                = Column("role", String, nullable=False)
