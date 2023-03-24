@@ -24,13 +24,13 @@ class Account(User):
 
 
 class SignInRequest(BaseModel):
-    user_password: str
+    user_password: str | None
     user_email: EmailStr
 
 
 class SignUpRequest(SignInRequest):
-    user_password_repeat: str
-    user_name: str
+    user_password_repeat: str | None
+    user_name: str | None
 
 
 class UserUpdateRequest(BaseModel):

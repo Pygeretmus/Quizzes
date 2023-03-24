@@ -21,19 +21,23 @@ def create_access_token(data: dict) -> str:
 def decode_access_token(token: str) -> dict:
     try:
         decoded_jwt = jwt.decode(jwt=token, key=(config("SECRET_KEY")), algorithms=config("ALGORITHM"), audience=config("AUDIENCE"), issuer=config("ISSUER"))
+    except jwt.exceptions.ExpiredSignatureError:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Need to sign in")
     except jwt.exceptions.DecodeError:
         return None
     except jwt.exceptions.MissingRequiredClaimError:
         decoded_jwt = jwt.decode(jwt=token, key=config("SECRET_KEY"), algorithms=config("ALGORITHM"))
+    
+
     return decoded_jwt
 
 
 async def get_current_user(token: str = Depends(auth_token_schema), db: Database = Depends(get_db)) -> UserResponse:
     payload = decode_access_token(token.credentials)
     if not payload:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token is not valid")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect token")
     try:
-        user_email = payload["https://example.com/email"]
+        user_email = payload["email"]
     except KeyError:
         user_email = payload["sub"]
         if not user_email:

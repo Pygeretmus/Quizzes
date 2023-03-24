@@ -3,7 +3,7 @@ from core.security              import get_current_user
 from databases                  import Database
 from fastapi                    import APIRouter, Depends
 from schemas.company_schema     import *
-from schemas.user_schema        import *
+from schemas.user_schema        import UserResponse
 from services.company_service   import CompanyService
 
 
