@@ -1,4 +1,4 @@
-from sqlalchemy                 import Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy                 import Column, Integer, String, DateTime, ForeignKey, ARRAY
 from sqlalchemy.ext.declarative import declarative_base
 
 
@@ -45,3 +45,20 @@ class Members(Base):
     user_id             = Column("user_id", ForeignKey('Users.user_id', ondelete='CASCADE'), nullable=False)
     company_id          = Column("company_id", ForeignKey('Companies.company_id', ondelete='CASCADE'), nullable=False)
     role                = Column("role", String, nullable=False)
+
+
+class Quizzes(Base):
+    __tablename__       = 'Quizzes'
+    quiz_id             = Column("quiz_id", Integer, primary_key=True)
+    quiz_name           = Column("quiz_name", String, nullable=False)
+    quiz_frequency      = Column("quiz_frequency", Integer, nullable=False)
+    quiz_company        = Column("quiz_company", ForeignKey('Companies.company_id', ondelete='CASCADE'), nullable=False)
+
+
+class Questions(Base):
+    __tablename__       = 'Questions'
+    question_id         = Column("question_id", Integer, primary_key=True)
+    question_name       = Column("question_name", String, nullable=False)
+    question_answers    = Column("question_answers", ARRAY(String), nullable=False)
+    question_right      = Column("question_right", String, nullable=False)
+    quiz_id             = Column("quiz_id", ForeignKey('Quizzes.quiz_id', ondelete='CASCADE'), nullable=False)
