@@ -26,7 +26,7 @@ class QuizService:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="This user not a member of this company")
 
 
-    async def quiz_questions(self, quiz) -> None:
+    async def quiz_questions(self, quiz) -> list[Question]:
         questions = await self.db.fetch_all(query= select(Questions).where(Questions.quiz_id == quiz.quiz_id))
         return [Question(**item) for item in questions]
     
