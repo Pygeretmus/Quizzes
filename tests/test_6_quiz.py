@@ -345,7 +345,7 @@ async def test_create_quiz_owner(ac: AsyncClient, users_tokens):
     assert response.json().get('result').get("quiz_name") == "1 quiz"
     assert response.json().get('result').get("quiz_id") == 1
     assert response.json().get('result').get("quiz_frequency") == 1
-    assert response.json().get('result').get("quiz_company") == 2
+    assert response.json().get('result').get("company_id") == 2
     assert response.json().get('detail') == "success"
 
 
@@ -378,7 +378,7 @@ async def test_create_quiz_admin(ac: AsyncClient, users_tokens):
     assert response.json().get('result').get("quiz_name") == "2 quiz"
     assert response.json().get('result').get("quiz_id") == 2
     assert response.json().get('result').get("quiz_frequency") == 0
-    assert response.json().get('result').get("quiz_company") == 2
+    assert response.json().get('result').get("company_id") == 2
     assert response.json().get('detail') == "success"
 
 
@@ -455,7 +455,7 @@ async def test_get_quiz_by_id(ac: AsyncClient, users_tokens):
     assert response.json().get('result').get("quiz_name") == "1 quiz"
     assert response.json().get('result').get("quiz_id") == 1
     assert response.json().get('result').get("quiz_frequency") == 1
-    assert response.json().get('result').get("quiz_company") == 2
+    assert response.json().get('result').get("company_id") == 2
     assert response.json().get('detail') == "success"
 
 
@@ -810,7 +810,7 @@ async def test_update_quiz_owner(ac: AsyncClient, users_tokens):
     assert response.json().get('result').get("quiz_name") == "NEW QUIZ NAME"
     assert response.json().get('result').get("quiz_id") == 1
     assert response.json().get('result').get("quiz_frequency") == 1
-    assert response.json().get('result').get("quiz_company") == 2
+    assert response.json().get('result').get("company_id") == 2
     assert response.json().get('detail') == "success"
 
 
@@ -823,7 +823,7 @@ async def test_get_quiz_by_id_after_update(ac: AsyncClient, users_tokens):
     assert response.json().get('result').get("quiz_name") == "NEW QUIZ NAME"
     assert response.json().get('result').get("quiz_id") == 1
     assert response.json().get('result').get("quiz_frequency") == 1
-    assert response.json().get('result').get("quiz_company") == 2
+    assert response.json().get('result').get("company_id") == 2
     assert response.json().get('detail') == "success"
 
 
@@ -866,7 +866,7 @@ async def test_get_quiz_by_id_after_update2(ac: AsyncClient, users_tokens):
     assert response.json().get('result').get("quiz_name") == "NEW QUIZ NAME"
     assert response.json().get('result').get("quiz_id") == 1
     assert response.json().get('result').get("quiz_frequency") == 1
-    assert response.json().get('result').get("quiz_company") == 2
+    assert response.json().get('result').get("company_id") == 2
     assert response.json().get('result').get("questions")[0].get("question_name") == "NEW question"
     assert response.json().get('result').get("questions")[0].get("question_answers") == ["TRUE", "False"]
     assert response.json().get('result').get("questions")[0].get("question_right") == "TRUE"
