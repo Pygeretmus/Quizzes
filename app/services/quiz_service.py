@@ -156,7 +156,7 @@ class QuizService:
             try:
                 right += question.question_right == answer[question.question_id]  
             except KeyError:
-                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Answer for question {question.question_id} required")
+                pass
         company_statistics = await self.db.fetch_one(select(Statistics).where(Statistics.company_id == self.company_id, Statistics.user_id == self.user.result.user_id).order_by(desc(Statistics.statistic_id)).limit(1))
         all_statistics = await self.db.fetch_one(select(Statistics).where(Statistics.user_id == self.user.result.user_id).order_by(desc(Statistics.statistic_id)).limit(1))  
         quiz_questions = len(questions)
