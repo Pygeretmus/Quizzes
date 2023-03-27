@@ -9,8 +9,13 @@ DATABASE_URL = f"postgresql+asyncpg://{config('POSTGRES_USER')}:{config('POSTGRE
 db = Database(DATABASE_URL)
 redis = False
 
+
 def get_db() -> Database:
     return db
+
+
+def get_redis() -> Database:
+    return redis
 
 
 async def redis_connect():

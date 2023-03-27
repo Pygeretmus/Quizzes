@@ -1,9 +1,9 @@
+from core.connections           import get_redis
 from databases                  import Database
 from datetime                   import date, timedelta
 from fastapi                    import HTTPException, status
-from models.models              import Quizzes, Companies, Members, Users, Questions, Statistics
+from models.models              import Quizzes, Companies, Members, Questions, Statistics
 from schemas.user_schema        import UserResponse
-from schemas.company_schema     import CompanyResponse, Company
 from schemas.quiz_schema        import *
 from sqlalchemy                 import select, insert, delete, update, desc
 
@@ -139,7 +139,7 @@ class QuizService:
         return await self.quiz_get_id(quiz_id=quiz_id)
     
 
-    async def quiz_passing(self, quiz_id:int, data: AnswerCreateRequest) -> SubmitResponse:
+    async def quiz_passing(self, quiz_id:int, data: AnswerCreateRequest, redis) -> SubmitResponse:
         quiz = await self.quiz_get_id(quiz_id=quiz_id)
         self.company_id = quiz.result.company_id
         await self.member_check()
@@ -151,12 +151,22 @@ class QuizService:
                 raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"This user must wait until {next_time}")
         questions = await self.db.fetch_all(query=select(Questions).where(Questions.quiz_id==quiz_id))
         answer = {answer.question_id:answer.answer for answer in data.answers}
-        right = 0
+        i = 0
+        key = f"company_{self.company_id}:quiz_{quiz_id}:user_{self.user.result.user_id}"
+        while True:
+            i += 1
+            if await redis.exists(key + f":attempt_{i}:question_1") == 0:
+                break
+        key += f":attempt_{i}"
+        right, i = 0, 0
         for question in questions:
+            i += 1
             try:
-                right += question.question_right == answer[question.question_id]  
+                truth = question.question_right == answer[question.question_id]
+                right += truth
+                await redis.setex(key + f":question_{i}", 172800, f"Question '{question.question_name}':\n{answer[question.question_id]} is {'Right answer' if truth else 'Wrong answer'}")
             except KeyError:
-                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Answer for question {question.question_id} required")
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Answer for question {question.question_id} required")    
         company_statistics = await self.db.fetch_one(select(Statistics).where(Statistics.company_id == self.company_id, Statistics.user_id == self.user.result.user_id).order_by(desc(Statistics.statistic_id)).limit(1))
         all_statistics = await self.db.fetch_one(select(Statistics).where(Statistics.user_id == self.user.result.user_id).order_by(desc(Statistics.statistic_id)).limit(1))  
         quiz_questions = len(questions)
@@ -203,5 +213,4 @@ class QuizService:
                                     all_right_answers = all_right_answers,
                                     all_average = all_average,
                                     quiz_passed_at = today))
-        
         return SubmitResponse(detail="success", result=Submit(all_questions=quiz_questions, right_answers=quiz_right_answers, average=quiz_average))
