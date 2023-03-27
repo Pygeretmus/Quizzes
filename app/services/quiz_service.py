@@ -152,7 +152,7 @@ class QuizService:
         questions = await self.db.fetch_all(query=select(Questions).where(Questions.quiz_id==quiz_id))
         answer = {answer.question_id:answer.answer for answer in data.answers}
         i = 0
-        key = f"company_{self.company_id}:quiz_{quiz_id}:user_{self.user.result.user_id}"
+        key = f"company_{self.company_id}:user_{self.user.result.user_id}:quiz_{quiz_id}"
         while True:
             i += 1
             if await redis.exists(key + f":attempt_{i}:question_1") == 0:
@@ -166,6 +166,9 @@ class QuizService:
                 right += truth
                 await redis.setex(key + f":question_{i}", 172800, f"Question '{question.question_name}':\n{answer[question.question_id]} is {'Right answer' if truth else 'Wrong answer'}")
             except KeyError:
+                while i > 0:
+                    await redis.delete(key + f":question_{i}")
+                    i -= 1
                 raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Answer for question {question.question_id} required")    
         company_statistics = await self.db.fetch_one(select(Statistics).where(Statistics.company_id == self.company_id, Statistics.user_id == self.user.result.user_id).order_by(desc(Statistics.statistic_id)).limit(1))
         all_statistics = await self.db.fetch_one(select(Statistics).where(Statistics.user_id == self.user.result.user_id).order_by(desc(Statistics.statistic_id)).limit(1))  
