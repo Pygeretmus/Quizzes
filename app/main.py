@@ -1,7 +1,7 @@
 import uvicorn
 
 from decouple               import config
-from core.connections       import get_db, redis_close, redis_connect
+from core.connections       import get_db, redis_close, redis_connect, get_redis
 from fastapi                import FastAPI
 from routers                import quiz_route, user_route, auth, company_route, invite_route, request_route
 from schemas.user_schema    import *
