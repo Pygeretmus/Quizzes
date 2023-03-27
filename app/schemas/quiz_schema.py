@@ -53,12 +53,12 @@ class QuizListResponse(Response):
 
 
 class Answer(BaseModel):
-    question_id: int
-    answer: str
+    question_id: Optional[int]
+    answer: Optional[str]
 
 
 class AnswerCreateRequest(BaseModel):
-    answers: list[Answer]
+    answers: Optional[list[Answer]]
 
 
 class Submit(BaseModel):

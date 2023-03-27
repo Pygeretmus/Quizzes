@@ -150,15 +150,17 @@ class QuizService:
             if next_time > today:
                 raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"This user must wait until {next_time}")
         questions = await self.db.fetch_all(query=select(Questions).where(Questions.quiz_id==quiz_id))
-        answer = {answer.question_id:answer.answer for answer in data.answers}
         right = 0
-        for question in questions:
-            try:
-                right += question.question_right == answer[question.question_id]  
-            except KeyError:
-                pass
+        if data.answers:
+            answers = {answer.question_id:answer.answer for answer in data.answers}
+            for question in questions:
+                try:
+                    right += question.question_right == answers[question.question_id]  
+                except KeyError:
+                    pass
         company_statistics = await self.db.fetch_one(select(Statistics).where(Statistics.company_id == self.company_id, Statistics.user_id == self.user.result.user_id).order_by(desc(Statistics.statistic_id)).limit(1))
         all_statistics = await self.db.fetch_one(select(Statistics).where(Statistics.user_id == self.user.result.user_id).order_by(desc(Statistics.statistic_id)).limit(1))  
+        print(questions, len(questions))
         quiz_questions = len(questions)
         quiz_right_answers = right
         quiz_average = quiz_right_answers / quiz_questions
@@ -203,5 +205,5 @@ class QuizService:
                                     all_right_answers = all_right_answers,
                                     all_average = all_average,
                                     quiz_passed_at = today))
-        
+        print(quiz_questions)
         return SubmitResponse(detail="success", result=Submit(all_questions=quiz_questions, right_answers=quiz_right_answers, average=quiz_average))
