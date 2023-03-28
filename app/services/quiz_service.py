@@ -1,9 +1,9 @@
+from core.connections           import get_redis
 from databases                  import Database
 from datetime                   import date, timedelta
 from fastapi                    import HTTPException, status
-from models.models              import Quizzes, Companies, Members, Users, Questions, Statistics
+from models.models              import Quizzes, Companies, Members, Questions, Statistics
 from schemas.user_schema        import UserResponse
-from schemas.company_schema     import CompanyResponse, Company
 from schemas.quiz_schema        import *
 from sqlalchemy                 import select, insert, delete, update, desc
 
@@ -139,30 +139,40 @@ class QuizService:
         return await self.quiz_get_id(quiz_id=quiz_id)
     
 
-    async def quiz_passing(self, quiz_id:int, data: AnswerCreateRequest) -> SubmitResponse:
+    async def quiz_passing(self, quiz_id:int, data: AnswerCreateRequest, redis) -> SubmitResponse:
         quiz = await self.quiz_get_id(quiz_id=quiz_id)
         self.company_id = quiz.result.company_id
         await self.member_check()
-        quiz_statistics = await self.db.fetch_one(select(Statistics).where(Statistics.quiz_id == quiz_id, Statistics.user_id == self.user.result.user_id).order_by(desc(Statistics.statistic_id)).limit(1))
+        quiz_statistics = await self.db.fetch_all(select(Statistics).where(Statistics.quiz_id == quiz_id, Statistics.user_id == self.user.result.user_id))
+        attempt = len(quiz_statistics) + 1
         today = date.today()
-        if quiz_statistics: 
+        
+        if quiz_statistics:
+            quiz_statistics = quiz_statistics[-1]
             next_time = quiz_statistics.quiz_passed_at + timedelta(days=quiz.result.quiz_frequency) 
             if next_time > today:
                 raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"This user must wait until {next_time}")
+        
         questions = await self.db.fetch_all(query=select(Questions).where(Questions.quiz_id==quiz_id))
         right = 0
-        if data.answers:
-            answers = {answer.question_id:answer.answer for answer in data.answers}
-            for question in questions:
-                try:
-                    right += question.question_right == answers[question.question_id]  
-                except KeyError:
-                    pass
+
+        key = f"company_{self.company_id}:user_{self.user.result.user_id}:quiz_{quiz_id}:attempt_{attempt}"
+        answers = {answer.question_id:answer.answer for answer in data.answers} if data.answers else {}
+        
+        for count, question in enumerate(questions):
+            try:
+                truth = question.question_right == answers[question.question_id]
+                right += truth
+                await redis.setex(key + f":question_{count+1}", 172800, f"Question '{question.question_name}':\n{answers[question.question_id]} is {'Right answer' if truth else 'Wrong answer'}")
+            except KeyError:
+                await redis.setex(key + f":question_{count+1}", 172800, f"Question '{question.question_name}':\nEMPTY ANSWER is 'Wrong answer'")
+
         company_statistics = await self.db.fetch_one(select(Statistics).where(Statistics.company_id == self.company_id, Statistics.user_id == self.user.result.user_id).order_by(desc(Statistics.statistic_id)).limit(1))
         all_statistics = await self.db.fetch_one(select(Statistics).where(Statistics.user_id == self.user.result.user_id).order_by(desc(Statistics.statistic_id)).limit(1))  
         quiz_questions = len(questions)
         quiz_right_answers = right
         quiz_average = quiz_right_answers / quiz_questions
+        
         if quiz_statistics:
             quizzes_questions = quiz_statistics.quizzes_questions + quiz_questions
             quizzes_right_answers = quiz_statistics.quizzes_right_answers + quiz_right_answers
@@ -171,6 +181,7 @@ class QuizService:
             quizzes_questions = quiz_questions
             quizzes_right_answers = quiz_right_answers
             quizzes_average = quiz_average
+        
         if company_statistics:
             company_questions = company_statistics.company_questions + quiz_questions
             company_right_answers = company_statistics.company_right_answers + quiz_right_answers
@@ -179,6 +190,7 @@ class QuizService:
             company_questions = quiz_questions
             company_right_answers = quiz_right_answers
             company_average = quiz_average
+        
         if all_statistics:
             all_questions = all_statistics.all_questions + quiz_questions
             all_right_answers = all_statistics.all_right_answers + quiz_right_answers
@@ -187,6 +199,7 @@ class QuizService:
             all_questions = quiz_questions
             all_right_answers = quiz_right_answers
             all_average = quiz_average
+        
         await self.db.execute(query=insert(Statistics).values(
                                     company_id=self.company_id,
                                     user_id = self.user.result.user_id,

@@ -1,4 +1,4 @@
-from core.connections       import get_db
+from core.connections       import get_db, get_redis
 from core.security          import get_current_user
 from databases              import Database
 from fastapi                import APIRouter, Depends
@@ -36,5 +36,5 @@ async def upgrade_quiz(quiz_id: int, data:QuizUpdateRequest, user: UserResponse 
 
 
 @router.post('/attempt/{quiz_id}/', response_model=SubmitResponse)
-async def passing_quiz(quiz_id: int, data:AnswerCreateRequest, user: UserResponse = Depends(get_current_user), db: Database = Depends(get_db)) -> SubmitResponse:
-    return await QuizService(db=db, user=user).quiz_passing(quiz_id=quiz_id, data=data)
+async def passing_quiz(quiz_id: int, data:AnswerCreateRequest, user: UserResponse = Depends(get_current_user), db: Database = Depends(get_db), redis = Depends(get_redis)) -> SubmitResponse:
+    return await QuizService(db=db, user=user).quiz_passing(quiz_id=quiz_id, data=data, redis=redis)

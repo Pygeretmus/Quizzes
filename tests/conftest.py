@@ -1,5 +1,6 @@
 import asyncio
 import pytest_asyncio
+import aioredis
 
 from typing import AsyncGenerator
 from starlette.testclient import TestClient
@@ -8,7 +9,7 @@ from sqlalchemy.ext.asyncio import create_async_engine
 from httpx import AsyncClient
 
 #import your app
-from app.main import app, get_db
+from app.main import app, get_db, get_redis
 #import your metadata
 from app.models.models import Base
 #import your test urls for db
@@ -19,13 +20,17 @@ DATABASE_URL = f"postgresql+asyncpg://{config('TEST_USER')}:{config('TEST_PASSWO
 
 
 test_db = Database(DATABASE_URL)
-
+redis = False
 
 def override_get_db() -> Database:
     return test_db
 
 
+def override_get_redis():
+    return redis
+
 app.dependency_overrides[get_db] = override_get_db
+app.dependency_overrides[get_redis] = override_get_redis
 
 
 engine_test = create_async_engine(DATABASE_URL)
@@ -46,10 +51,13 @@ def test_app():
 
 @pytest_asyncio.fixture(autouse=True, scope='session')
 async def prepare_database():
+    global redis
+    redis = await aioredis.from_url("redis://redis/1")
     await test_db.connect()
     async with engine_test.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     yield
+    await redis.close()
     await test_db.disconnect()
     async with engine_test.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
