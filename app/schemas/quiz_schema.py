@@ -27,7 +27,7 @@ class QuizCreateRequest(BaseModel):
 class Quiz(QuizCreateRequest):
     quiz_id: int
     questions: list[Question]
-    quiz_company: int
+    company_id: int
 
 
 class QuizList(BaseModel):
@@ -39,6 +39,7 @@ class QuizUpdateRequest(BaseModel):
     quiz_frequency: Optional[int] = None
     questions: Optional[list[QuestionUpdate]] = None
 
+
 class Response(BaseModel):
     detail: str
 
@@ -49,3 +50,22 @@ class QuizResponse(Response):
 
 class QuizListResponse(Response):
     result: QuizList
+
+
+class Answer(BaseModel):
+    question_id: Optional[int]
+    answer: Optional[str]
+
+
+class AnswerCreateRequest(BaseModel):
+    answers: Optional[list[Answer]]
+
+
+class Submit(BaseModel):
+    all_questions: int
+    right_answers: int
+    average: float 
+
+
+class SubmitResponse(Response):
+    result: Submit

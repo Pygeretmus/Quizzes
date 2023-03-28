@@ -36,6 +36,27 @@ def upgrade():
     sa.ForeignKeyConstraint(['company_owner_id'], ['Users.user_id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('company_id')
     )
+    op.create_table('Statistics',
+    sa.Column('statistic_id', sa.Integer(), nullable=False),
+    sa.Column('company_id', sa.Integer(), nullable=False),
+    sa.Column('user_id', sa.Integer(), nullable=False),
+    sa.Column('quiz_id', sa.Integer(), nullable=False),
+    sa.Column('quiz_questions', sa.Integer(), nullable=False),
+    sa.Column('quiz_right_answers', sa.Integer(), nullable=False),
+    sa.Column('quiz_average', sa.Float(), nullable=False),
+    sa.Column('quizzes_questions', sa.Integer(), nullable=False),
+    sa.Column('quizzes_right_answers', sa.Integer(), nullable=False),
+    sa.Column('quizzes_average', sa.Float(), nullable=False),
+    sa.Column('company_questions', sa.Integer(), nullable=False),
+    sa.Column('company_right_answers', sa.Integer(), nullable=False),
+    sa.Column('company_average', sa.Float(), nullable=False),
+    sa.Column('all_questions', sa.Integer(), nullable=False),
+    sa.Column('all_right_answers', sa.Integer(), nullable=False),
+    sa.Column('all_average', sa.Float(), nullable=False),
+    sa.Column('quiz_passed_at', sa.Date(), nullable=False),
+    sa.ForeignKeyConstraint(['user_id'], ['Users.user_id'], ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('statistic_id')
+    )
     op.create_table('Invites',
     sa.Column('invite_id', sa.Integer(), nullable=False),
     sa.Column('to_user_id', sa.Integer(), nullable=False),
@@ -58,8 +79,8 @@ def upgrade():
     sa.Column('quiz_id', sa.Integer(), nullable=False),
     sa.Column('quiz_name', sa.String(), nullable=False),
     sa.Column('quiz_frequency', sa.Integer(), nullable=False),
-    sa.Column('quiz_company', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['quiz_company'], ['Companies.company_id'], ondelete='CASCADE'),
+    sa.Column('company_id', sa.Integer(), nullable=False),
+    sa.ForeignKeyConstraint(['company_id'], ['Companies.company_id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('quiz_id')
     )
     op.create_table('Requests',
@@ -90,6 +111,7 @@ def downgrade():
     op.drop_table('Quizzes')
     op.drop_table('Members')
     op.drop_table('Invites')
+    op.drop_table('Statistics')
     op.drop_table('Companies')
     op.drop_table('Users')
     # ### end Alembic commands ###

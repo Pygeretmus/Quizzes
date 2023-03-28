@@ -33,3 +33,8 @@ async def create_new_quiz(data:QuizCreateRequest, company_id: int, user: UserRes
 @router.put('/quiz/{quiz_id}/', response_model=QuizResponse)
 async def upgrade_quiz(quiz_id: int, data:QuizUpdateRequest, user: UserResponse = Depends(get_current_user), db: Database = Depends(get_db)) -> QuizResponse:
     return await QuizService(db=db, user=user).quiz_update(quiz_id=quiz_id, data=data)
+
+
+@router.post('/attempt/{quiz_id}/', response_model=SubmitResponse)
+async def passing_quiz(quiz_id: int, data:AnswerCreateRequest, user: UserResponse = Depends(get_current_user), db: Database = Depends(get_db)) -> SubmitResponse:
+    return await QuizService(db=db, user=user).quiz_passing(quiz_id=quiz_id, data=data)

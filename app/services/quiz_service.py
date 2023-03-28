@@ -1,10 +1,11 @@
 from databases                  import Database
+from datetime                   import date, timedelta
 from fastapi                    import HTTPException, status
-from models.models              import Quizzes, Companies, Members, Users, Questions
+from models.models              import Quizzes, Companies, Members, Users, Questions, Statistics
 from schemas.user_schema        import UserResponse
 from schemas.company_schema     import CompanyResponse, Company
 from schemas.quiz_schema        import *
-from sqlalchemy                 import select, insert, delete, update
+from sqlalchemy                 import select, insert, delete, update, desc
 
 
 class QuizService:
@@ -33,11 +34,11 @@ class QuizService:
 
     async def quiz_get_all(self) -> QuizListResponse:
         await self.member_check()
-        query = select(Quizzes).where(Quizzes.quiz_company == self.company_id)
+        query = select(Quizzes).where(Quizzes.company_id == self.company_id)
         quizzes = await self.db.fetch_all(query=query)
         for quiz in quizzes:
             quiz.questions = await self.quiz_questions(quiz=quiz)
-        quizzes = [Quiz(quiz_name=item.quiz_name, quiz_frequency=item.quiz_frequency, questions=item.questions, quiz_id=item.quiz_id, quiz_company=self.company_id) for item in quizzes]
+        quizzes = [Quiz(quiz_name=item.quiz_name, quiz_frequency=item.quiz_frequency, questions=item.questions, quiz_id=item.quiz_id, company_id=self.company_id) for item in quizzes]
         return QuizListResponse(detail="success", result = QuizList(quizzes=quizzes))
 
 
@@ -46,10 +47,10 @@ class QuizService:
         quiz = await self.db.fetch_one(query=query)
         if not quiz:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="This quiz not found")
-        self.company_id = quiz.quiz_company
+        self.company_id = quiz.company_id
         await self.member_check()
         quiz.questions = await self.quiz_questions(quiz=quiz)
-        return QuizResponse(detail="success", result = Quiz(quiz_name=quiz.quiz_name, quiz_frequency = quiz.quiz_frequency, questions = quiz.questions, quiz_id=quiz.quiz_id, quiz_company=quiz.quiz_company))
+        return QuizResponse(detail="success", result = Quiz(quiz_name=quiz.quiz_name, quiz_frequency = quiz.quiz_frequency, questions = quiz.questions, quiz_id=quiz.quiz_id, company_id=quiz.company_id))
 
     
     async def permission_check(self) -> None:
@@ -61,7 +62,7 @@ class QuizService:
 
     async def quiz_delete(self, quiz_id:int) -> Response:
         result = await self.quiz_get_id(quiz_id=quiz_id)
-        self.company_id = result.result.quiz_company
+        self.company_id = result.result.company_id
         await self.permission_check()
         query = delete(Quizzes).where(Quizzes.quiz_id == quiz_id)
         await self.db.execute(query=query)
@@ -99,7 +100,7 @@ class QuizService:
         quiz_id = await self.db.execute(query = insert(Quizzes).values(
                                         quiz_name = data.quiz_name,
                                         quiz_frequency = data.quiz_frequency,
-                                        quiz_company = self.company_id
+                                        company_id = self.company_id
                                         ).returning(Quizzes))
         values = []
         for question in data.questions:
@@ -118,7 +119,7 @@ class QuizService:
 
     async def quiz_update(self, quiz_id:int, data: QuizUpdateRequest) -> QuizResponse:
         quiz = await self.quiz_get_id(quiz_id=quiz_id)
-        self.company_id = quiz.result.quiz_company
+        self.company_id = quiz.result.company_id
         await self.permission_check()
         try:
             if data.questions:
@@ -136,3 +137,71 @@ class QuizService:
             await self.db.execute(query=update(Quizzes).where(Quizzes.quiz_id == quiz_id).values(dict(data)))
             return await self.quiz_get_id(quiz_id=quiz_id)
         return await self.quiz_get_id(quiz_id=quiz_id)
+    
+
+    async def quiz_passing(self, quiz_id:int, data: AnswerCreateRequest) -> SubmitResponse:
+        quiz = await self.quiz_get_id(quiz_id=quiz_id)
+        self.company_id = quiz.result.company_id
+        await self.member_check()
+        quiz_statistics = await self.db.fetch_one(select(Statistics).where(Statistics.quiz_id == quiz_id, Statistics.user_id == self.user.result.user_id).order_by(desc(Statistics.statistic_id)).limit(1))
+        today = date.today()
+        if quiz_statistics: 
+            next_time = quiz_statistics.quiz_passed_at + timedelta(days=quiz.result.quiz_frequency) 
+            if next_time > today:
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"This user must wait until {next_time}")
+        questions = await self.db.fetch_all(query=select(Questions).where(Questions.quiz_id==quiz_id))
+        right = 0
+        if data.answers:
+            answers = {answer.question_id:answer.answer for answer in data.answers}
+            for question in questions:
+                try:
+                    right += question.question_right == answers[question.question_id]  
+                except KeyError:
+                    pass
+        company_statistics = await self.db.fetch_one(select(Statistics).where(Statistics.company_id == self.company_id, Statistics.user_id == self.user.result.user_id).order_by(desc(Statistics.statistic_id)).limit(1))
+        all_statistics = await self.db.fetch_one(select(Statistics).where(Statistics.user_id == self.user.result.user_id).order_by(desc(Statistics.statistic_id)).limit(1))  
+        quiz_questions = len(questions)
+        quiz_right_answers = right
+        quiz_average = quiz_right_answers / quiz_questions
+        if quiz_statistics:
+            quizzes_questions = quiz_statistics.quizzes_questions + quiz_questions
+            quizzes_right_answers = quiz_statistics.quizzes_right_answers + quiz_right_answers
+            quizzes_average = quizzes_right_answers / quizzes_questions
+        else:
+            quizzes_questions = quiz_questions
+            quizzes_right_answers = quiz_right_answers
+            quizzes_average = quiz_average
+        if company_statistics:
+            company_questions = company_statistics.company_questions + quiz_questions
+            company_right_answers = company_statistics.company_right_answers + quiz_right_answers
+            company_average = company_right_answers / company_questions
+        else:
+            company_questions = quiz_questions
+            company_right_answers = quiz_right_answers
+            company_average = quiz_average
+        if all_statistics:
+            all_questions = all_statistics.all_questions + quiz_questions
+            all_right_answers = all_statistics.all_right_answers + quiz_right_answers
+            all_average = all_right_answers / all_questions
+        else:
+            all_questions = quiz_questions
+            all_right_answers = quiz_right_answers
+            all_average = quiz_average
+        await self.db.execute(query=insert(Statistics).values(
+                                    company_id=self.company_id,
+                                    user_id = self.user.result.user_id,
+                                    quiz_id = quiz_id,
+                                    quiz_questions = quiz_questions,
+                                    quiz_right_answers = quiz_right_answers,
+                                    quiz_average = quiz_average,
+                                    quizzes_questions = quizzes_questions,
+                                    quizzes_right_answers = quizzes_right_answers,
+                                    quizzes_average = quizzes_average,
+                                    company_questions = company_questions,
+                                    company_right_answers = company_right_answers,
+                                    company_average = company_average,
+                                    all_questions = all_questions,
+                                    all_right_answers = all_right_answers,
+                                    all_average = all_average,
+                                    quiz_passed_at = today))
+        return SubmitResponse(detail="success", result=Submit(all_questions=quiz_questions, right_answers=quiz_right_answers, average=quiz_average))
