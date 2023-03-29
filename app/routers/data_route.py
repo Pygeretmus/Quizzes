@@ -6,7 +6,6 @@ from fastapi                import APIRouter, Depends
 from schemas.quiz_schema    import DataListResponse
 from schemas.user_schema    import UserResponse
 from services.data_service  import DataService
-from starlette.responses    import StreamingResponse
 
 
 router = APIRouter()
@@ -17,8 +16,8 @@ async def get_data_me(user: UserResponse = Depends(get_current_user), db: Databa
     return await DataService(db=db, redis=redis, user=user).data_me()
  
 
-@router.get('/me/csv', response_model=StreamingResponse)
-async def get_data_me_csv(user: UserResponse = Depends(get_current_user), db: Database = Depends(get_db), redis: Redis=Depends(get_redis)) -> StreamingResponse:
+@router.get('/me/csv')
+async def get_data_me_csv(user: UserResponse = Depends(get_current_user), db: Database = Depends(get_db), redis: Redis=Depends(get_redis)):
     return await DataService(db=db, redis=redis, user=user).data_me(file=True)
 
 
@@ -27,8 +26,8 @@ async def get_data_me_company(company_id:int, user: UserResponse = Depends(get_c
     return await DataService(db=db, redis=redis, user=user).data_me(company_id=company_id)
 
 
-@router.get('/me/company/{company_id}/csv/', response_model=StreamingResponse)
-async def get_data_me_company_csv(company_id:int, user: UserResponse = Depends(get_current_user), db: Database = Depends(get_db), redis: Redis=Depends(get_redis)) -> StreamingResponse:
+@router.get('/me/company/{company_id}/csv/')
+async def get_data_me_company_csv(company_id:int, user: UserResponse = Depends(get_current_user), db: Database = Depends(get_db), redis: Redis=Depends(get_redis)):
     return await DataService(db=db, redis=redis, user=user).data_me(company_id=company_id, file=True)
 
 
@@ -37,8 +36,8 @@ async def get_data_me_quiz(quiz_id:int, user: UserResponse = Depends(get_current
     return await DataService(db=db, redis=redis, user=user).data_me(quiz_id=quiz_id)
 
 
-@router.get('/me/quiz/{quiz_id}/csv/', response_model=StreamingResponse)
-async def get_data_me_quiz_csv(quiz_id:int, user: UserResponse = Depends(get_current_user), db: Database = Depends(get_db), redis: Redis=Depends(get_redis)) -> StreamingResponse:
+@router.get('/me/quiz/{quiz_id}/csv/')
+async def get_data_me_quiz_csv(quiz_id:int, user: UserResponse = Depends(get_current_user), db: Database = Depends(get_db), redis: Redis=Depends(get_redis)):
     return await DataService(db=db, redis=redis, user=user).data_me(quiz_id=quiz_id, file=True)
 
 
@@ -47,8 +46,8 @@ async def get_data_company(company_id:int, user: UserResponse = Depends(get_curr
     return await DataService(db=db, redis=redis, user=user, company_id=company_id).data_company()
 
 
-@router.get('/company/{company_id}/csv/', response_model=StreamingResponse)
-async def get_data_company_csv(company_id:int, user: UserResponse = Depends(get_current_user), db: Database = Depends(get_db), redis: Redis=Depends(get_redis)) -> StreamingResponse:
+@router.get('/company/{company_id}/csv/')
+async def get_data_company_csv(company_id:int, user: UserResponse = Depends(get_current_user), db: Database = Depends(get_db), redis: Redis=Depends(get_redis)):
     return await DataService(db=db, redis=redis, user=user, company_id=company_id).data_company(file=True)
 
 
@@ -57,8 +56,8 @@ async def get_data_company_quiz(company_id:int, quiz_id: int, user: UserResponse
     return await DataService(db=db, redis=redis, user=user, company_id=company_id).data_company(quiz_id=quiz_id)
 
 
-@router.get('/company/{company_id}/quiz/{quiz_id}/csv/', response_model=StreamingResponse)
-async def get_data_company_quiz_csv(company_id:int, quiz_id: int, user: UserResponse = Depends(get_current_user), db: Database = Depends(get_db), redis: Redis=Depends(get_redis)) -> StreamingResponse:
+@router.get('/company/{company_id}/quiz/{quiz_id}/csv/')
+async def get_data_company_quiz_csv(company_id:int, quiz_id: int, user: UserResponse = Depends(get_current_user), db: Database = Depends(get_db), redis: Redis=Depends(get_redis)):
     return await DataService(db=db, redis=redis, user=user, company_id=company_id).data_company(quiz_id=quiz_id, file=True)
 
 
@@ -67,8 +66,8 @@ async def get_data_company_quiz(company_id:int, user_id: int, user: UserResponse
     return await DataService(db=db, redis=redis, user=user, company_id=company_id).data_company(user_id=user_id)
 
 
-@router.get('/company/{company_id}/user/{user_id}/csv/', response_model=StreamingResponse)
-async def get_data_company_quiz_csv(company_id:int, user_id: int, user: UserResponse = Depends(get_current_user), db: Database = Depends(get_db), redis: Redis=Depends(get_redis)) -> StreamingResponse:
+@router.get('/company/{company_id}/user/{user_id}/csv/')
+async def get_data_company_quiz_csv(company_id:int, user_id: int, user: UserResponse = Depends(get_current_user), db: Database = Depends(get_db), redis: Redis=Depends(get_redis)):
     return await DataService(db=db, redis=redis, user=user, company_id=company_id).data_company(user_id=user_id, file=True)
 
 
@@ -77,8 +76,8 @@ async def get_data_company_quiz_user(company_id:int, quiz_id: int, user_id:int, 
     return await DataService(db=db, redis=redis, user=user, company_id=company_id).data_company(quiz_id=quiz_id, user_id=user_id)
 
 
-@router.get('/company/{company_id}/quiz/{quiz_id}/user/{user_id}/csv/', response_model=StreamingResponse)
-async def get_data_company_quiz_user_csv(company_id:int, quiz_id: int, user_id:int, user: UserResponse = Depends(get_current_user), db: Database = Depends(get_db), redis: Redis=Depends(get_redis)) -> StreamingResponse:
+@router.get('/company/{company_id}/quiz/{quiz_id}/user/{user_id}/csv/')
+async def get_data_company_quiz_user_csv(company_id:int, quiz_id: int, user_id:int, user: UserResponse = Depends(get_current_user), db: Database = Depends(get_db), redis: Redis=Depends(get_redis)):
     return await DataService(db=db, redis=redis, user=user, company_id=company_id).data_company(quiz_id=quiz_id, user_id=user_id, file=True)
 
 
