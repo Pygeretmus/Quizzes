@@ -3,12 +3,13 @@ import uvicorn
 from decouple               import config
 from core.connections       import get_db, redis_close, redis_connect, get_redis
 from fastapi                import FastAPI
-from routers                import quiz_route, user_route, auth, company_route, invite_route, request_route
+from routers                import quiz_route, user_route, auth, company_route, invite_route, request_route, data_route
 from schemas.user_schema    import *
 
 
 app = FastAPI()
 app.include_router(auth.router, prefix='/auth', tags=["Auth"])
+app.include_router(data_route.router, prefix='/data', tags=["Data"])
 app.include_router(company_route.router, prefix='', tags=["Company"])
 app.include_router(invite_route.router, prefix='/invite', tags=["Invite"])
 app.include_router(quiz_route.router, prefix='', tags= ["Quiz"])

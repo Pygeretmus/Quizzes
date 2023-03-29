@@ -1,12 +1,10 @@
 from databases                  import Database
 from fastapi                    import HTTPException, status
-from models.models              import Members, Requests, Users, Companies, Invites
+from models.models              import Members, Requests, Companies, Invites
 from schemas.company_schema     import *
 from schemas.request_schema     import *
 from schemas.user_schema        import UserResponse
 from sqlalchemy                 import select, insert, delete
-from services.company_service   import CompanyService
-from services.user_service      import UserService
 
 class RequestService:
 

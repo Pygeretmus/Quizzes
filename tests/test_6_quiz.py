@@ -382,6 +382,28 @@ async def test_create_quiz_admin(ac: AsyncClient, users_tokens):
     assert response.json().get('result').get("company_id") == 2
     assert response.json().get('detail') == "success"
 
+    payload = {
+        "quiz_name": "3 quiz",
+        "quiz_frequency": 0,
+        "questions": [
+        {
+        "question_name": "question 5",
+        "question_answers": [
+        "True", "False"
+      ],
+        "question_right": "True"
+    },
+    {
+        "question_name": "question 6",
+        "question_answers": [
+        "True", "False"
+      ],
+        "question_right": "True"
+    }
+  ]
+    }
+    await ac.post('/company/2/quiz/', headers=headers, json=payload)
+
 
 # =============================================== GET QUIZZES ===============================================
 
@@ -416,7 +438,7 @@ async def test_get_quizzes_company_two(ac: AsyncClient, users_tokens):
     }
     response = await ac.get('/company/2/quizes', headers=headers)
     assert response.status_code == 200
-    assert len(response.json().get('result').get('quizzes')) == 2
+    assert len(response.json().get('result').get('quizzes')) == 3
     assert response.json().get('detail') == "success"
 
 
@@ -511,7 +533,7 @@ async def test_get_quizzes_company_two_after_delete(ac: AsyncClient, users_token
     }
     response = await ac.get('/company/2/quizes', headers=headers)
     assert response.status_code == 200
-    assert len(response.json().get('result').get('quizzes')) == 1
+    assert len(response.json().get('result').get('quizzes')) == 2
     assert response.json().get('detail') == "success"
 
 
@@ -834,14 +856,14 @@ async def test_update_quiz_admin(ac: AsyncClient, users_tokens):
     payload = {
         "questions": [
         {
-        "question_name": "5 question",
+        "question_name": "7 question",
         "question_answers": [
         "True", "False", "None"
       ],
         "question_right": "True"
     },
 {
-        "question_name": "6 question",
+        "question_name": "8 question",
         "question_answers": [
         "True", "False"
       ],
@@ -851,7 +873,7 @@ async def test_update_quiz_admin(ac: AsyncClient, users_tokens):
     }
     response = await ac.put('/quiz/1/', headers=headers, json=payload)
     assert response.status_code == 200
-    assert response.json().get('result').get("questions")[0].get("question_name") == "5 question"
+    assert response.json().get('result').get("questions")[0].get("question_name") == "7 question"
     assert response.json().get('result').get("questions")[0].get("question_answers") == ["True", "False", "None"]
     assert response.json().get('result').get("questions")[0].get("question_right") == "True"
     assert response.json().get('detail') == "success"
@@ -867,7 +889,7 @@ async def test_get_quiz_by_id_after_update2(ac: AsyncClient, users_tokens):
     assert response.json().get('result').get("quiz_id") == 1
     assert response.json().get('result').get("quiz_frequency") == 1
     assert response.json().get('result').get("company_id") == 2
-    assert response.json().get('result').get("questions")[0].get("question_name") == "5 question"
+    assert response.json().get('result').get("questions")[0].get("question_name") == "7 question"
     assert response.json().get('result').get("questions")[0].get("question_answers") == ["True", "False", "None"]
     assert response.json().get('result').get("questions")[0].get("question_right") == "True"
     assert response.json().get('detail') == "success"
@@ -903,7 +925,7 @@ async def test_bad_passing_quiz_not_member(ac: AsyncClient, users_tokens):
     assert response.json().get('detail') == "This user not a member of this company"
   
 
-async def test_passing_quiz(ac: AsyncClient, users_tokens):
+async def test_passing_quizzes(ac: AsyncClient, users_tokens):
     headers = {
         "Authorization": f"Bearer {users_tokens['test3@test.com']}",
     }
@@ -915,20 +937,30 @@ async def test_passing_quiz(ac: AsyncClient, users_tokens):
     assert response.json().get('result').get('right_answers') == 0
     assert response.json().get('result').get('average') == 0
 	
-
-async def test_bad_passing_quiz_second(ac: AsyncClient, users_tokens):
-    headers = {
-        "Authorization": f"Bearer {users_tokens['test3@test.com']}",
-    }
-    payload = {}
-    response = await ac.post('/attempt/1/', headers=headers, json=payload)
-    assert response.status_code == 400
-    assert response.json().get('detail') == f"This user must wait until {date.today() + timedelta(days=1)}"
-
-
-async def test_passing_quiz_second(ac: AsyncClient, users_tokens):
     headers = {
         "Authorization": f"Bearer {users_tokens['test2@test.com']}",
+    }
+    payload = {
+    "answers": [
+    {
+      "question_id": 7,
+      "answer": "True"
+    },
+    {
+      "question_id": 8,
+      "answer": "False"
+    }
+    ]
+}
+    response = await ac.post('/attempt/1/', headers=headers, json=payload)
+    assert response.status_code == 200
+    assert response.json().get('detail') == "success"
+    assert response.json().get('result').get('all_questions') == 2
+    assert response.json().get('result').get('right_answers') == 1
+    assert response.json().get('result').get('average') == 0.5
+
+    headers = {
+        "Authorization": f"Bearer {users_tokens['test1@test.com']}",
     }
     payload = {
     "answers": [
@@ -942,18 +974,14 @@ async def test_passing_quiz_second(ac: AsyncClient, users_tokens):
     }
     ]
 }
-    response = await ac.post('/attempt/1/', headers=headers, json=payload)
+    response = await ac.post('/attempt/3/', headers=headers, json=payload)
     assert response.status_code == 200
     assert response.json().get('detail') == "success"
     assert response.json().get('result').get('all_questions') == 2
     assert response.json().get('result').get('right_answers') == 1
     assert response.json().get('result').get('average') == 0.5
 
-  
-async def test_passing_quiz_third(ac: AsyncClient, users_tokens):
-    headers = {
-        "Authorization": f"Bearer {users_tokens['test1@test.com']}",
-    }
+
     payload = {
     "answers": [
     {
@@ -965,10 +993,48 @@ async def test_passing_quiz_third(ac: AsyncClient, users_tokens):
       "answer": "True"
     }
     ]
-}
-    response = await ac.post('/attempt/1/', headers=headers, json=payload)
+    }
+    response = await ac.post('/attempt/3/', headers=headers, json=payload)
     assert response.status_code == 200
     assert response.json().get('detail') == "success"
     assert response.json().get('result').get('all_questions') == 2
     assert response.json().get('result').get('right_answers') == 2
     assert response.json().get('result').get('average') == 1
+
+
+    payload = {
+    "answers": [
+    {
+      "question_id": 7,
+      "answer": "True"
+    },
+    {
+      "question_id": 8,
+      "answer": "False"
+    }
+    ]
+    }
+    response = await ac.post('/attempt/1/', headers=headers, json=payload)
+    assert response.status_code == 200
+    assert response.json().get('detail') == "success"
+    assert response.json().get('result').get('all_questions') == 2
+    assert response.json().get('result').get('right_answers') == 1 
+    assert response.json().get('result').get('average') == 0.5
+
+
+async def test_bad_passing_quiz_second(ac: AsyncClient, users_tokens):
+    headers = {
+        "Authorization": f"Bearer {users_tokens['test3@test.com']}",
+    }
+    payload = {}
+    response = await ac.post('/attempt/1/', headers=headers, json=payload)
+    assert response.status_code == 400
+    assert response.json().get('detail') == f"This user must wait until {date.today() + timedelta(days=1)}"
+
+
+
+
+
+  
+
+

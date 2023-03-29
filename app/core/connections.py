@@ -20,7 +20,7 @@ def get_redis() -> Database:
 
 async def redis_connect():
     global redis
-    redis = await aioredis.from_url("redis://redis")
+    redis = await aioredis.from_url("redis://redis/0")
 
 
 async def redis_close():

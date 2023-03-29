@@ -1,4 +1,4 @@
-from core.connections           import get_redis
+from aioredis.client            import Redis
 from databases                  import Database
 from datetime                   import date, timedelta
 from fastapi                    import HTTPException, status
@@ -139,7 +139,7 @@ class QuizService:
         return await self.quiz_get_id(quiz_id=quiz_id)
     
 
-    async def quiz_passing(self, quiz_id:int, data: AnswerCreateRequest, redis) -> SubmitResponse:
+    async def quiz_passing(self, quiz_id:int, data: AnswerCreateRequest, redis: Redis) -> SubmitResponse:
         quiz = await self.quiz_get_id(quiz_id=quiz_id)
         self.company_id = quiz.result.company_id
         await self.member_check()
@@ -163,9 +163,9 @@ class QuizService:
             try:
                 truth = question.question_right == answers[question.question_id]
                 right += truth
-                await redis.setex(key + f":question_{count+1}", 172800, f"Question '{question.question_name}':\n{answers[question.question_id]} is {'Right answer' if truth else 'Wrong answer'}")
+                await redis.setex(key + f":question_{count+1}", 172800, f"Question '{question.question_name}': {answers[question.question_id]} is {'Right answer' if truth else 'Wrong answer'}")
             except KeyError:
-                await redis.setex(key + f":question_{count+1}", 172800, f"Question '{question.question_name}':\nEMPTY ANSWER is 'Wrong answer'")
+                await redis.setex(key + f":question_{count+1}", 172800, f"Question '{question.question_name}': EMPTY ANSWER is 'Wrong answer'")
 
         company_statistics = await self.db.fetch_one(select(Statistics).where(Statistics.company_id == self.company_id, Statistics.user_id == self.user.result.user_id).order_by(desc(Statistics.statistic_id)).limit(1))
         all_statistics = await self.db.fetch_one(select(Statistics).where(Statistics.user_id == self.user.result.user_id).order_by(desc(Statistics.statistic_id)).limit(1))  
