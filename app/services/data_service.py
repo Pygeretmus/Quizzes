@@ -8,6 +8,7 @@ from io                         import StringIO, BytesIO
 from models.models              import Members, Companies, Quizzes
 from schemas.quiz_schema        import Data, DataList, DataListResponse
 from schemas.user_schema        import UserResponse
+from starlette.responses        import StreamingResponse
 from sqlalchemy                 import select
 
 
@@ -36,7 +37,7 @@ class DataService:
                     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="This user not a member of this company")
 
 
-    async def response_create(self, file:bool, keys:list):
+    async def response_create(self, file:bool, keys:list) -> StreamingResponse or DataListResponse:
         if file:
             csv_buffer = StringIO()
             file_writer = csv.writer(csv_buffer)
@@ -65,7 +66,7 @@ class DataService:
         return DataListResponse(detail="success", result=DataList(datas=answers))
 
 
-    async def data_me(self, company_id:int="*", quiz_id="*", file=False):
+    async def data_me(self, company_id:int="*", quiz_id="*", file=False) -> StreamingResponse or DataListResponse:
         await self.attributes_check(company_id=company_id, quiz_id=quiz_id)
         keys = await self.redis.keys(f'company_{company_id}:user_{self.user.result.user_id}:quiz_{quiz_id}:*')
         return await self.response_create(file=file, keys=keys)
@@ -77,7 +78,7 @@ class DataService:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User doesn't have permission for this")
 
 
-    async def data_company(self, user_id="*", quiz_id="*", file=False):
+    async def data_company(self, user_id="*", quiz_id="*", file=False) -> StreamingResponse or DataListResponse:
         await self.permission_check()
         await self.attributes_check(company_id=self.company_id, user_id=user_id, quiz_id=quiz_id)
         keys = await self.redis.keys(f'company_{self.company_id}:user_{user_id}:quiz_{quiz_id}:*')
