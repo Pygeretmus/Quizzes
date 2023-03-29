@@ -1,8 +1,8 @@
 from databases                  import Database
 from fastapi                    import HTTPException, status
-from models.models              import Companies, Members, Users
+from models.models              import Companies, Members
 from schemas.company_schema     import *
-from schemas.user_schema        import UserResponse, User
+from schemas.user_schema        import UserResponse
 from sqlalchemy                 import select, insert, delete, update
 
 

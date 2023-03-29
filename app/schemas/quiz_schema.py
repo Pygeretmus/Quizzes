@@ -69,3 +69,19 @@ class Submit(BaseModel):
 
 class SubmitResponse(Response):
     result: Submit
+
+
+class Data(BaseModel):
+    user_id: int
+    company_id: int
+    quiz_id: int
+    attempt: int
+    answer: str 
+
+
+class DataList(BaseModel):
+    datas: list[Data]
+
+
+class DataListResponse(Response):
+    result: DataList
