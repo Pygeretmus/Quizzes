@@ -83,6 +83,48 @@ async def test_company_data_quiz_user(ac: AsyncClient, users_tokens):
     assert response.json().get('result').get('datas')[1].get('quiz_id') == 1
 
 
+async def test_analytics(ac: AsyncClient, users_tokens):
+    headers = {
+        "Authorization": f"Bearer {users_tokens['test2@test.com']}",
+    }
+    response = await ac.get('/analytics/user/1/', headers=headers)
+    assert response.status_code == 200
+    
+    response = await ac.get('/analytics/me/', headers=headers)
+    assert response.status_code == 200
+    
+    response = await ac.get('/analytics/me/company/2/', headers=headers)
+    assert response.status_code == 200
+    
+    response = await ac.get('/analytics/me/average/', headers=headers)
+    assert response.status_code == 200
+    
+    response = await ac.get('/analytics/me/average/company/2/', headers=headers)
+    assert response.status_code == 200
+    
+    response = await ac.get('/analytics/me/average/quiz/1/', headers=headers)
+    assert response.status_code == 200
+    
+    response = await ac.get('/analytics/me/datas/', headers=headers)
+    assert response.status_code == 200
+    
+    response = await ac.get('/analytics/company/2/average/', headers=headers)
+    assert response.status_code == 200
+    
+    response = await ac.get('/analytics/company/2/average/user/2/', headers=headers)
+    assert response.status_code == 200
+    
+    response = await ac.get('/analytics/company/2/average/quiz/1/', headers=headers)
+    assert response.status_code == 200
+    
+    response = await ac.get('/analytics/company/2/user/1/rating/', headers=headers)
+    assert response.status_code == 200
+    
+    response = await ac.get('/analytics/company/2/rating/', headers=headers)
+    assert response.status_code == 200
+
+    response = await ac.get('/analytics/company/2/datas/', headers=headers)
+    assert response.status_code == 200
 
 
 
