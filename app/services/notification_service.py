@@ -18,15 +18,13 @@ class NotificationService:
             notifications = await self.db.fetch_all(query=select(Notifications).where(Notifications.user_id==self.user.result.user_id).order_by(desc(Notifications.notification_id)))
         else:
             notifications = await self.db.fetch_all(query=select(Notifications).where(Notifications.user_id==self.user.result.user_id, Notifications.notification_read==read).order_by(desc(Notifications.notification_id)))
-        result=[]
-        if notifications:
-            result = [Notification(**item) for item in notifications]
+        result = notifications if notifications else []
         return NotificationResponse(detail="success", result=result)
     
 
-    async def notification_check(self, notification_id) -> None:
+    async def notification_check(self, notification_id:int) -> None:
         if not await self.db.fetch_one(query=select(Notifications).where(Notifications.notification_id==notification_id, Notifications.user_id==self.user.result.user_id)):
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="It's not your notification")
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="It's not your notification")
 
 
     async def notification_read(self, notification_id:int) -> NotificationResponse:

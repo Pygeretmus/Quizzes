@@ -8,7 +8,7 @@ async def test_my_data(ac: AsyncClient, users_tokens):
     headers = {
         "Authorization": f"Bearer {users_tokens['test1@test.com']}",
     }
-    response = await ac.get('/data/me/', headers=headers)
+    response = await ac.get('/data/my/', headers=headers)
     assert response.status_code == 200
     assert response.json().get('detail') == "success"
     assert len(response.json().get('result').get('datas')) == 6
@@ -19,7 +19,7 @@ async def test_my_data_quiz(ac: AsyncClient, users_tokens):
     headers = {
         "Authorization": f"Bearer {users_tokens['test1@test.com']}",
     }
-    response = await ac.get('/data/me/quiz/1/', headers=headers)
+    response = await ac.get('/data/my/quiz/1/', headers=headers)
     assert response.status_code == 200
     assert response.json().get('detail') == "success"
     assert len(response.json().get('result').get('datas')) == 2
@@ -31,7 +31,7 @@ async def test_my_data_company(ac: AsyncClient, users_tokens):
     headers = {
         "Authorization": f"Bearer {users_tokens['test2@test.com']}",
     }
-    response = await ac.get('/data/me/company/2/', headers=headers)
+    response = await ac.get('/data/my/company/2/', headers=headers)
     assert response.status_code == 200
     assert response.json().get('detail') == "success"
     assert len(response.json().get('result').get('datas')) == 2
@@ -90,22 +90,22 @@ async def test_analytics(ac: AsyncClient, users_tokens):
     response = await ac.get('/analytics/user/1/', headers=headers)
     assert response.status_code == 200
     
-    response = await ac.get('/analytics/me/', headers=headers)
+    response = await ac.get('/analytics/my/', headers=headers)
     assert response.status_code == 200
     
-    response = await ac.get('/analytics/me/company/2/', headers=headers)
+    response = await ac.get('/analytics/my/company/2/', headers=headers)
     assert response.status_code == 200
     
-    response = await ac.get('/analytics/me/average/', headers=headers)
+    response = await ac.get('/analytics/my/average/', headers=headers)
     assert response.status_code == 200
     
-    response = await ac.get('/analytics/me/average/company/2/', headers=headers)
+    response = await ac.get('/analytics/my/average/company/2/', headers=headers)
     assert response.status_code == 200
     
-    response = await ac.get('/analytics/me/average/quiz/1/', headers=headers)
+    response = await ac.get('/analytics/my/average/quiz/1/', headers=headers)
     assert response.status_code == 200
     
-    response = await ac.get('/analytics/me/datas/', headers=headers)
+    response = await ac.get('/analytics/my/datas/', headers=headers)
     assert response.status_code == 200
     
     response = await ac.get('/analytics/company/2/average/', headers=headers)

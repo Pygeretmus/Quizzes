@@ -12,32 +12,32 @@ from services.data_service  import DataService
 router = APIRouter()
 
 
-@router.get('/me/', response_model=DataListResponse)
+@router.get('/my/', response_model=DataListResponse)
 async def get_data_me(user: UserResponse = Depends(get_current_user), db: Database = Depends(get_db), redis: Redis=Depends(get_redis)) -> DataListResponse:
     return await DataService(db=db, redis=redis, user=user).data_me()
  
 
-@router.get('/me/csv', response_class=StreamingResponse)
+@router.get('/my/csv', response_class=StreamingResponse)
 async def get_data_me_csv(user: UserResponse = Depends(get_current_user), db: Database = Depends(get_db), redis: Redis=Depends(get_redis)) -> StreamingResponse:
     return await DataService(db=db, redis=redis, user=user).data_me(file=True)
 
 
-@router.get('/me/company/{company_id}/', response_model=DataListResponse)
+@router.get('/my/company/{company_id}/', response_model=DataListResponse)
 async def get_data_me_company(company_id:int, user: UserResponse = Depends(get_current_user), db: Database = Depends(get_db), redis: Redis=Depends(get_redis)) -> DataListResponse:
     return await DataService(db=db, redis=redis, user=user).data_me(company_id=company_id)
 
 
-@router.get('/me/company/{company_id}/csv/', response_class=StreamingResponse)
+@router.get('/my/company/{company_id}/csv/', response_class=StreamingResponse)
 async def get_data_me_company_csv(company_id:int, user: UserResponse = Depends(get_current_user), db: Database = Depends(get_db), redis: Redis=Depends(get_redis)) -> StreamingResponse:
     return await DataService(db=db, redis=redis, user=user).data_me(company_id=company_id, file=True)
 
 
-@router.get('/me/quiz/{quiz_id}/', response_model=DataListResponse)
+@router.get('/my/quiz/{quiz_id}/', response_model=DataListResponse)
 async def get_data_me_quiz(quiz_id:int, user: UserResponse = Depends(get_current_user), db: Database = Depends(get_db), redis: Redis=Depends(get_redis)) -> DataListResponse:
     return await DataService(db=db, redis=redis, user=user).data_me(quiz_id=quiz_id)
 
 
-@router.get('/me/quiz/{quiz_id}/csv/', response_class=StreamingResponse)
+@router.get('/my/quiz/{quiz_id}/csv/', response_class=StreamingResponse)
 async def get_data_me_quiz_csv(quiz_id:int, user: UserResponse = Depends(get_current_user), db: Database = Depends(get_db), redis: Redis=Depends(get_redis)) -> StreamingResponse:
     return await DataService(db=db, redis=redis, user=user).data_me(quiz_id=quiz_id, file=True)
 

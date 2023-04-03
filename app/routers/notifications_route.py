@@ -10,17 +10,17 @@ from services.notification_service  import NotificationService
 router = APIRouter()
 
 
-@router.get('/me/', response_model=NotificationResponse)
+@router.get('/my/', response_model=NotificationResponse)
 async def get_all_notifications(user: UserResponse = Depends(get_current_user), db: Database = Depends(get_db)) -> NotificationResponse:
     return await NotificationService(db=db, user=user).notification_get()
 
 
-@router.get('/me/read/', response_model=NotificationResponse)
+@router.get('/my/read/', response_model=NotificationResponse)
 async def get_read_notifications(user: UserResponse = Depends(get_current_user), db: Database = Depends(get_db)) -> NotificationResponse:
     return await NotificationService(db=db, user=user).notification_get(read=True)
  
 
-@router.get('/me/unread/', response_model=NotificationResponse)
+@router.get('/my/unread/', response_model=NotificationResponse)
 async def get_unread_notifications(user: UserResponse = Depends(get_current_user), db: Database = Depends(get_db)) -> NotificationResponse:
     return await NotificationService(db=db, user=user).notification_get(read=False)
  

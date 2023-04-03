@@ -203,7 +203,7 @@ async def test_auth_me_one(ac: AsyncClient, users_tokens):
     headers = {
         "Authorization": f"Bearer {users_tokens['test1@test.com']}",
     }
-    response = await ac.get("/auth/me/", headers=headers)
+    response = await ac.get("/auth/my/", headers=headers)
     assert response.status_code == 200
     assert response.json().get('result').get('user_name') == "test1"
     assert response.json().get('result').get('user_email') == "test1@test.com"
@@ -216,7 +216,7 @@ async def test_bad_auth_me(ac: AsyncClient):
     headers = {
         "Authorization": "Bearer retretwetrt.rqwryerytwetrty",
     }
-    response = await ac.get("/auth/me/", headers=headers)
+    response = await ac.get("/auth/my/", headers=headers)
     assert response.status_code == 401
     assert response.json().get('detail') == "Incorrect token"
 
@@ -398,7 +398,7 @@ async def test_auth_me_two(ac: AsyncClient, users_tokens):
     headers = {
         "Authorization": f"Bearer {users_tokens['test6@test.com']}",
     }
-    response = await ac.get("/auth/me/", headers=headers)
+    response = await ac.get("/auth/my/", headers=headers)
     assert response.status_code == 200
     assert response.json().get('result').get('user_name') == "User"
     assert response.json().get('result').get('user_email') == "test6@test.com"
