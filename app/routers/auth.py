@@ -17,6 +17,6 @@ async def autentification(login: SignInRequest, db: Database =Depends(get_db)) -
     return TokenResponse(detail="success", result = Token(access_token=create_access_token({'sub': login.user_email}), token_type="Bearer"))
 
 
-@router.get('/me/', response_model=UserResponse)
+@router.get('/my/', response_model=UserResponse)
 async def information(user: UserResponse = Depends(get_current_user)) -> UserResponse:
     return user

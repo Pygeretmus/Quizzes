@@ -15,32 +15,32 @@ async def get_user_rating(user_id:int, user: UserResponse = Depends(get_current_
     return await AnalyticsService(db=db).rating_get_user(user_id=user_id)
 
 
-@router.get('/me/', response_model=FloatResponse)
+@router.get('/my/', response_model=FloatResponse)
 async def get_my_rating(user: UserResponse = Depends(get_current_user), db: Database = Depends(get_db)) -> FloatResponse:
     return await AnalyticsService(db=db).rating_get_user(user_id=user.result.user_id)
 
 
-@router.get('/me/company/{company_id}/', response_model=FloatResponse)
+@router.get('/my/company/{company_id}/', response_model=FloatResponse)
 async def get_my_company_rating(company_id:int, user: UserResponse = Depends(get_current_user), db: Database = Depends(get_db)) -> FloatResponse:
     return await AnalyticsService(db=db).rating_get_company(user_id=user.result.user_id, company_id=company_id)
 
 
-@router.get('/me/average/', response_model=QuizAttemptsResponse)
+@router.get('/my/average/', response_model=QuizAttemptsResponse)
 async def get_my_average(user: UserResponse = Depends(get_current_user), db: Database = Depends(get_db)) -> QuizAttemptsResponse:
     return await AnalyticsService(db=db, user=user).average_get_my_quizzes()
 
 
-@router.get('/me/average/company/{company_id}/', response_model=QuizAttemptsResponse)
+@router.get('/my/average/company/{company_id}/', response_model=QuizAttemptsResponse)
 async def get_my_average_company(company_id:int, user: UserResponse = Depends(get_current_user), db: Database = Depends(get_db)) -> QuizAttemptsResponse:
     return await AnalyticsService(db=db, user=user).average_get_my_quizzes(company_id=company_id)
 
 
-@router.get('/me/average/quiz/{quiz_id}/', response_model=QuizAttemptsResponse)
+@router.get('/my/average/quiz/{quiz_id}/', response_model=QuizAttemptsResponse)
 async def get_my_average_quiz(quiz_id:int, user: UserResponse = Depends(get_current_user), db: Database = Depends(get_db)) -> QuizAttemptsResponse:
     return await AnalyticsService(db=db, user=user).average_get_my_quizzes(quiz_id=quiz_id)
 
 
-@router.get('/me/datas/', response_model=LastAttempts)
+@router.get('/my/datas/', response_model=LastAttempts)
 async def get_my_last_attempts(user: UserResponse = Depends(get_current_user), db: Database = Depends(get_db)) -> LastAttempts:
     return await AnalyticsService(db=db, user=user).datas_get_my()
 

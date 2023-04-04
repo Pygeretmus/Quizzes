@@ -1,8 +1,10 @@
+import datetime
+
 from aioredis.client            import Redis
 from databases                  import Database
 from datetime                   import date, timedelta
 from fastapi                    import HTTPException, status
-from models.models              import Quizzes, Companies, Members, Questions, Statistics
+from models.models              import Quizzes, Companies, Members, Questions, Statistics, Notifications
 from schemas.user_schema        import UserResponse
 from schemas.quiz_schema        import *
 from sqlalchemy                 import select, insert, delete, update, desc
@@ -106,6 +108,17 @@ class QuizService:
         for question in data.questions:
             values += [{"question_name": question.question_name, "question_answers": question.question_answers, "question_right": question.question_right, "quiz_id": quiz_id}]
         await self.db.execute_many(query=insert(Questions), values=values)
+        query = select(Members).where(Members.company_id==self.company_id).filter(Members.user_id.notin_([self.user.result.user_id]))
+        company = await self.db.fetch_one(query=select(Companies).where(Companies.company_id==self.company_id))
+        members = await self.db.fetch_all(query=query)
+        if members:
+            values = [{"user_id": member.user_id, 
+                    "company_id": self.company_id, 
+                    "quiz_id": quiz_id, 
+                    "notification_time": datetime.datetime.utcnow(), 
+                    "notification_content": f"Company '{company.company_name}' created new quiz!",
+                    "notification_read": False} for member in members]
+            await self.db.execute_many(query=insert(Notifications), values=values)
         return await self.quiz_get_id(quiz_id=quiz_id)
     
 

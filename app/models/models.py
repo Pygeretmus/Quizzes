@@ -1,4 +1,4 @@
-from sqlalchemy                 import Column, Integer, String, DateTime, ForeignKey, ARRAY, Float, Date
+from sqlalchemy                 import Column, Integer, String, DateTime, ForeignKey, ARRAY, Float, Date, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 
 
@@ -11,7 +11,6 @@ class Users(Base):
     user_name           = Column("user_name", String, nullable=False)
     user_password       = Column("user_password", String, nullable=False)
     user_email          = Column("user_email", String, unique=True, nullable=False)
-    user_status         = Column("user_status", String, nullable=True)
     user_registred_at   = Column("user_registred_at", DateTime, nullable=False)
 
 
@@ -66,7 +65,7 @@ class Questions(Base):
 
 class Statistics(Base):
     __tablename__           = 'Statistics'
-    statistic_id           = Column("statistic_id", Integer, primary_key=True)
+    statistic_id            = Column("statistic_id", Integer, primary_key=True)
     company_id              = Column("company_id", Integer, nullable=False)
     user_id                 = Column("user_id", ForeignKey('Users.user_id', ondelete='CASCADE'), nullable=False)
     quiz_id                 = Column("quiz_id", Integer, nullable=False)
@@ -84,3 +83,13 @@ class Statistics(Base):
     all_average             = Column("all_average", Float, nullable=False)
     quiz_passed_at          = Column("quiz_passed_at", Date, nullable=False)
 
+
+class Notifications(Base):
+    __tablename__           = 'Notifications'
+    notification_id         = Column("notification_id", Integer, primary_key=True)
+    user_id                 = Column("user_id", ForeignKey('Users.user_id', ondelete='CASCADE'), nullable=False)
+    company_id              = Column("company_id", ForeignKey('Companies.company_id', ondelete='CASCADE'), nullable=False)
+    quiz_id                 = Column("quiz_id", ForeignKey('Quizzes.quiz_id', ondelete='CASCADE'), nullable=False)
+    notification_time       = Column("notification_time", DateTime, nullable=False)
+    notification_read       = Column("notification_read", Boolean, nullable=False)
+    notification_content    = Column("notification_content", String, nullable=False)
