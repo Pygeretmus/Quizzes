@@ -1,9 +1,10 @@
 from databases                          import Database
+from datetime                           import date, timedelta, datetime
 from fastapi                            import HTTPException, status
-from models.models                      import Notifications
+from models.models                      import Notifications, Quizzes, Members, Statistics, Companies
 from schemas.user_schema                import UserResponse
 from schemas.notification_schema        import *
-from sqlalchemy                         import select, delete, update, desc
+from sqlalchemy                         import select, delete, update, desc, insert
 
 
 class NotificationService:
@@ -37,3 +38,25 @@ class NotificationService:
         await self.notification_check(notification_id=notification_id)
         await self.db.execute(query=delete(Notifications).where(Notifications.notification_id==notification_id))
         return Response(detail="success")
+    
+
+    async def notification_make_all(self) -> None:
+        quizzes = await self.db.fetch_all(query=select(Quizzes))
+        if quizzes:
+            for quiz in quizzes:
+                members = await self.db.fetch_all(query=select(Members).where(Members.company_id == quiz.company_id))
+                for member in members:
+                    query = select(Statistics).where(Statistics.user_id == member.user_id, Statistics.quiz_id == quiz.quiz_id).order_by(desc(Statistics.statistic_id)).limit(1)
+                    statistic = await self.db.fetch_one(query=query)
+                    if statistic:
+                        next_time = statistic.quiz_passed_at + timedelta(days=quiz.quiz_frequency)
+                        if next_time <= date.today():
+                            continue
+                    company = await self.db.fetch_one(query=select(Companies).where(Companies.company_id == quiz.company_id))
+                    await self.db.execute(query=insert(Notifications).values(user_id = member.user_id, 
+                                                                             company_id = member.company_id, 
+                                                                             quiz_id = quiz.quiz_id, 
+                                                                             notification_time = datetime.utcnow(), 
+                                                                             notification_content = f"You can take a quiz '{quiz.quiz_name}' from company '{company.company_name}'",
+                                                                             notification_read = False))
+                    
