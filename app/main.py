@@ -9,7 +9,6 @@ from routers                        import quiz_route, user_route, auth, company
 from schemas.user_schema            import *
 from services.notification_service  import NotificationService
 
-from loguru import logger
 
 app = FastAPI()
 app.include_router(analytics_route.router, prefix='/analytics', tags=["Analytics"])
@@ -34,8 +33,7 @@ async def databases_connect():
     databases = get_db()
     await databases.connect()
     scheduler = AsyncIOScheduler()
-    scheduler.add_job(make_notifications, 'cron', second='*/5')
-    # scheduler.add_job(make_notifications, 'cron', hour=2, minute=0)
+    scheduler.add_job(make_notifications, 'cron', hour=2, minute=0)
     scheduler.start()
 
 
