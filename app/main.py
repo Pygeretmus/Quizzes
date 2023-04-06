@@ -1,10 +1,13 @@
 import uvicorn
 
-from decouple               import config
-from core.connections       import get_db, redis_close, redis_connect, get_redis
-from fastapi                import FastAPI
-from routers                import quiz_route, user_route, auth, company_route, invite_route, request_route, data_route, analytics_route, notifications_route
-from schemas.user_schema    import *
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from core.connections               import get_db, redis_close, redis_connect, get_redis
+from databases                      import Database
+from decouple                       import config
+from fastapi                        import FastAPI, Depends
+from routers                        import quiz_route, user_route, auth, company_route, invite_route, request_route, data_route, analytics_route, notifications_route
+from schemas.user_schema            import *
+from services.notification_service  import NotificationService
 
 
 app = FastAPI()
@@ -19,12 +22,19 @@ app.include_router(request_route.router, prefix='/request', tags=["Request"])
 app.include_router(user_route.router, prefix='', tags= ["User"])
 
 
+async def make_notifications():
+    db = get_db()
+    await NotificationService(db=db).notification_make_all()
+
 
 @app.on_event("startup")
 async def databases_connect():
     await redis_connect()  
     databases = get_db()
     await databases.connect()
+    scheduler = AsyncIOScheduler()
+    scheduler.add_job(make_notifications, 'cron', hour=2, minute=0)
+    scheduler.start()
 
 
 @app.on_event("shutdown")
