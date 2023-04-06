@@ -50,7 +50,7 @@ class NotificationService:
                     statistic = await self.db.fetch_one(query=query)
                     if statistic:
                         next_time = statistic.quiz_passed_at + timedelta(days=quiz.quiz_frequency)
-                        if next_time <= date.today():
+                        if next_time > date.today():
                             continue
                     company = await self.db.fetch_one(query=select(Companies).where(Companies.company_id == quiz.company_id))
                     await self.db.execute(query=insert(Notifications).values(user_id = member.user_id, 
