@@ -19,7 +19,7 @@ class Companies(Base):
     company_id          = Column("company_id", Integer, primary_key=True)
     company_name        = Column("company_name", String, nullable=False)
     company_description = Column("company_description", String, nullable=True)
-    company_owner_id    = Column("company_owner_id", ForeignKey('Users.user_id', ondelete = "CASCADE"), nullable=False)
+    company_owner_id    = Column("company_owner_id", ForeignKey('Users.user_id'), nullable=False)
 
 
 class Invites(Base):

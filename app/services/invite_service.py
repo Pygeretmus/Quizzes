@@ -60,11 +60,11 @@ class InviteService:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="This user not found")
         await self.owner_check(company_id=payload.from_company_id)
         if await self.db.fetch_one(query=select(Invites).where(Invites.to_user_id==payload.to_user_id, Invites.from_company_id == payload.from_company_id)):
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invite already exists")
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invite already exists")
         if await self.db.fetch_one(query=select(Requests).where(Requests.from_user_id==payload.to_user_id, Requests.to_company_id == payload.from_company_id)):
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User already made the request to this company")
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User already made the request to this company")
         if await self.db.fetch_one(query=select(Members).where(Members.user_id==payload.to_user_id, Members.company_id == payload.from_company_id)):
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User already in this company")
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User already in this company")
         query = insert(Invites).values(to_user_id = payload.to_user_id, from_company_id = payload.from_company_id, invite_message = payload.invite_message).returning(Invites)
         result = await self.db.fetch_one(query=query)
         return InviteResponse(detail='success', result=Invite(**result))

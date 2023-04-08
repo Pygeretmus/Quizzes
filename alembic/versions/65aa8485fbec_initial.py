@@ -32,7 +32,7 @@ def upgrade():
     sa.Column('company_name', sa.String(), nullable=False),
     sa.Column('company_description', sa.String(), nullable=True),
     sa.Column('company_owner_id', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['company_owner_id'], ['Users.user_id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['company_owner_id'], ['Users.user_id']),
     sa.PrimaryKeyConstraint('company_id')
     )
     op.create_table('Statistics',

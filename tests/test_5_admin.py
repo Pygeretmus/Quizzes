@@ -1,7 +1,12 @@
 from httpx import AsyncClient
 
-# Number of tests 16
-# User 1 in company 2, user 3 in company 2, user 1 is admin in company 2.
+
+# Number of tests 22
+# Created 6 users, 1 (id=6) deleted and recreated (id=7).
+# Created 5 companies, 1 (id=5) deleted.
+# User 1 in company 2, user 2 has invite to company 1.
+# User 3 in company 2, company 3 has request from user 2.
+# User 1 is admin in company 2.
 
 
 # ============================================== ADMIN CREATE ===============================================
@@ -36,7 +41,7 @@ async def test_bad_create_admin_user_not_found(ac: AsyncClient, users_tokens):
         "user_id": 100,
     }
     response = await ac.post('/company/2/admin/', headers=headers, json=payload)
-    assert response.status_code == 404
+    assert response.status_code == 403
     assert response.json().get('detail') == "This user not a member of this company"
 
 
@@ -122,7 +127,7 @@ async def test_admin_remove_user_not_found(ac: AsyncClient, users_tokens):
         "Authorization": f"Bearer {users_tokens['test2@test.com']}",
     }
     response = await ac.delete('/company/2/admin/100/', headers=headers)
-    assert response.status_code == 404
+    assert response.status_code == 403
     assert response.json().get('detail') == "This user not a member of this company"
     
 
@@ -149,7 +154,7 @@ async def test_bad_remove_admin_user_not_found(ac: AsyncClient, users_tokens):
         "Authorization": f"Bearer {users_tokens['test2@test.com']}",
     }
     response = await ac.delete('/company/2/admin/100/', headers=headers)
-    assert response.status_code == 404
+    assert response.status_code == 403
     assert response.json().get('detail') == "This user not a member of this company"
 
 
@@ -172,4 +177,63 @@ async def test_admin_list_success_after_remove(ac: AsyncClient, users_tokens):
     assert len(response.json().get('result').get('users')) == 1
 
 
+# ============================================= GIVE OWNERSHIP ==============================================
 
+
+async def test_bad_ownership_give_not_auth(ac: AsyncClient):
+    response = await ac.post("/company/2/owner/1/")
+    assert response.status_code == 403
+    assert response.json().get('detail') == "Not authenticated"
+
+
+async def test_bad_ownership_give_not_owner(ac: AsyncClient, users_tokens):
+    headers = {
+        "Authorization": f"Bearer {users_tokens['test3@test.com']}",
+    }
+    response = await ac.post("/company/2/owner/1/", headers=headers)
+    assert response.status_code == 403
+    assert response.json().get('detail') == "It's not your company"
+    
+
+async def test_bad_ownership_give_company_not_found(ac: AsyncClient, users_tokens):
+    headers = {
+        "Authorization": f"Bearer {users_tokens['test3@test.com']}",
+    }
+    response = await ac.post("/company/100/owner/1/", headers=headers)
+    assert response.status_code == 404
+    assert response.json().get('detail') == "This company not found"
+
+
+async def test_bad_ownership_give_user_not_admin(ac: AsyncClient, users_tokens):
+    headers = {
+        "Authorization": f"Bearer {users_tokens['test2@test.com']}",
+    }
+    response = await ac.post("/company/2/owner/100/", headers=headers)
+    assert response.status_code == 403
+    assert response.json().get('detail') == "User not admin"
+
+
+async def test_ownership_give(ac: AsyncClient, users_tokens):
+    headers = {
+        "Authorization": f"Bearer {users_tokens['test2@test.com']}",
+    }
+    response = await ac.post("/company/2/owner/1/", headers=headers)
+    assert response.status_code == 200
+    assert response.json().get('detail') == "success"
+
+
+async def test_admin_list_success_after_revolution(ac: AsyncClient, users_tokens):
+    headers = {
+        "Authorization": f"Bearer {users_tokens['test1@test.com']}",
+    }
+    response = await ac.get('/company/2/admins/', headers=headers)
+    assert response.status_code == 200
+    assert len(response.json().get('result').get('users')) == 1
+    assert response.json().get('result').get('users')[0].get('user_id') == 2
+    assert response.json().get('result').get('users')[0].get('role') == 'admin'
+        
+    headers = {
+        "Authorization": f"Bearer {users_tokens['test1@test.com']}",
+    }
+    await ac.post("/company/2/owner/2/", headers=headers)
+    

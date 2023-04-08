@@ -73,25 +73,25 @@ class QuizService:
 
     async def quiz_check(self, data: Quiz) -> None:
         if len(data.questions) < 2:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Quiz must have more than one question")
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Quiz must have more than one question")
         question_names = []
         for question in data.questions:
             if not bool(question.question_name):
                 raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Question name required")
             if len(question.question_answers) < 2:
-                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Question must have more than one answer")
+                raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Question must have more than one answer")
             if question.question_name in question_names:
-                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Question must have unique name")
+                raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Question must have unique name")
             question_names.append(question.question_name)
             answer_names = []
             for answer in question.question_answers:
                 if not bool(answer):
                     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Answer name required")
                 if answer in answer_names:
-                    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Answer must have unique name")
+                    raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Answer must have unique name")
                 answer_names.append(answer)
             if question.question_right not in question.question_answers:
-                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Right answer not in the answers")
+                raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Right answer not in the answers")
 
 
     async def quiz_create(self, data: Quiz) -> QuizResponse:
@@ -164,7 +164,7 @@ class QuizService:
             quiz_statistics = quiz_statistics[-1]
             next_time = quiz_statistics.quiz_passed_at + timedelta(days=quiz.result.quiz_frequency) 
             if next_time > today:
-                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"This user must wait until {next_time}")
+                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"This user must wait until {next_time}")
         
         questions = await self.db.fetch_all(query=select(Questions).where(Questions.quiz_id==quiz_id))
         right = 0

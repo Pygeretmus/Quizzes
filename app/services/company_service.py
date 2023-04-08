@@ -43,7 +43,7 @@ class CompanyService:
 
     async def company_create(self, data: CompanyCreateRequest) -> CompanyResponse:
         if not data.company_name:
-            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Name required")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Name required")
         query = insert(Companies).values(
             company_name = data.company_name,
             company_description = data.company_description,
@@ -87,6 +87,8 @@ class CompanyService:
 
     async def member_kick(self, user_id:int) -> Response:
         await self.owner_check()
+        if self.user.result.user_id == user_id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can't kick yourself")
         query = delete(Members).where(Members.company_id==self.company_id, Members.user_id == user_id)
         await self.db.execute(query=query)
         return Response(detail="success")
@@ -104,7 +106,7 @@ class CompanyService:
         query = update(Members).where(Members.company_id==self.company_id, Members.user_id == user_id).values(role="user").returning(Members)
         result = await self.db.fetch_one(query=query)
         if not result:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="This user not a member of this company")
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="This user not a member of this company")
         return MemberResponse(detail="success", result=Member(**result))
     
 
@@ -113,7 +115,14 @@ class CompanyService:
         query = update(Members).where(Members.company_id==self.company_id, Members.user_id == user_id).values(role="admin").returning(Members)
         result = await self.db.fetch_one(query=query)
         if not result:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="This user not a member of this company")
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="This user not a member of this company")
         return MemberResponse(detail="success", result=Member(**result))
     
 
+    async def ownership_give(self, user_id:int):
+        await self.owner_check()
+        if await self.db.fetch_one(query=update(Members).where(Members.company_id==self.company_id, Members.user_id==user_id, Members.role=="admin").values(role="owner").returning(Members)):
+            await self.db.execute(query=update(Members).where(Members.company_id==self.company_id, Members.user_id==self.user.result.user_id, Members.role=="owner").values(role="admin"))
+            await self.db.execute(query=update(Companies).where(Companies.company_id==self.company_id).values(company_owner_id=user_id))
+            return Response(detail="success")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User not admin")

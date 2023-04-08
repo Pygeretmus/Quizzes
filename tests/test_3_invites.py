@@ -1,6 +1,9 @@
 from httpx import AsyncClient
 
-# Number of tests 49
+
+# Number of tests 51
+# Created 6 users, 1 (id=6) deleted and recreated (id=7).
+# Created 5 companies, 1 (id=5) deleted.
 # User 1 in company 2, user 2 has invite to company 1.
 
 
@@ -70,7 +73,7 @@ async def test_bad_send_invite_already_in_company(ac: AsyncClient, users_tokens)
         "invite_message": "string"
     }
     response = await ac.post("/invite/", json=payload, headers=headers)
-    assert response.status_code == 400
+    assert response.status_code == 403
     assert response.json().get('detail') == "User already in this company"
 
 
@@ -139,7 +142,7 @@ async def test_bad_send_invite_already_sent(ac: AsyncClient, users_tokens):
         "invite_message": "string"
     }
     response = await ac.post("/invite/", json=payload, headers=headers)
-    assert response.status_code == 400
+    assert response.status_code == 403
     assert response.json().get('detail') == "Invite already exists"
 
 
@@ -502,6 +505,15 @@ async def test_bad_kick_member_not_owner(ac: AsyncClient, users_tokens):
     assert response.json().get('detail') == "It's not your company"
 
 
+async def test_bad_kick_member_yourself(ac: AsyncClient, users_tokens):
+    headers = {
+        "Authorization": f"Bearer {users_tokens['test2@test.com']}",    
+    }
+    response = await ac.delete("/company/2/member/2/", headers=headers)
+    assert response.status_code == 403
+    assert response.json().get('detail') == "You can't kick yourself"
+
+
 async def test_kick_member(ac: AsyncClient, users_tokens):
     headers = {
         "Authorization": f"Bearer {users_tokens['test4@test.com']}",    
@@ -527,9 +539,18 @@ async def test_company_four_members_after_kick(ac: AsyncClient, users_tokens):
 
 
 async def test_bad_leave_company_not_auth(ac: AsyncClient):
-    response = await ac.delete("/company/{company_id}/leave/")
+    response = await ac.delete("/company/2/leave/")
     assert response.status_code == 403
     assert response.json().get('detail') == "Not authenticated"
+
+
+async def test_bad_leave_company_owner_not_user(ac: AsyncClient, users_tokens):
+    headers = {
+        "Authorization": f"Bearer {users_tokens['test2@test.com']}",    
+    }
+    response = await ac.delete("/company/2/leave/", headers=headers)
+    assert response.status_code == 403
+    assert response.json().get('detail') == "User have to be user or admin in this company"
 
 
 async def test_leave_company(ac: AsyncClient, users_tokens):
