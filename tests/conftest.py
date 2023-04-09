@@ -57,13 +57,12 @@ async def prepare_database():
     redis = await aioredis.from_url("redis://redis/1")
     await test_db.connect()
     async with engine_test.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
     yield
     await redis.close()
     await test_db.disconnect()
-    # async with engine_test.begin() as conn:
-        
+    async with engine_test.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
 
 
 @pytest_asyncio.fixture(scope="session")
@@ -90,7 +89,7 @@ async def login_user(ac: AsyncClient, users_tokens):
 
 
 @pytest_asyncio.fixture(scope='session')
-async def users_tokens():
+def users_tokens():
     tokens_store = dict()
     return tokens_store
 

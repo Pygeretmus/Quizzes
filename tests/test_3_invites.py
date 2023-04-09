@@ -550,7 +550,7 @@ async def test_bad_leave_company_owner_not_user(ac: AsyncClient, users_tokens):
     }
     response = await ac.delete("/company/2/leave/", headers=headers)
     assert response.status_code == 403
-    assert response.json().get('detail') == "User have to be user or admin in this company"
+    assert response.json().get('detail') == "User has to be member or admin of this company"
 
 
 async def test_leave_company(ac: AsyncClient, users_tokens):

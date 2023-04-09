@@ -129,4 +129,4 @@ class UserService:
         query = delete(Members).where(Members.company_id==company_id, Members.user_id == self.user.result.user_id).filter(Members.role.in_(["user", "admin"])).returning(Members)
         if await self.db.execute(query=query):
             return Response(detail="success")
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User have to be user or admin in this company")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User has to be member or admin of this company")
