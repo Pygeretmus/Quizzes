@@ -21,20 +21,25 @@ class DataService:
         self.company_id = company_id
 
 
-    async def attributes_check(self, company_id:int="*", quiz_id:int="*", user_id:int="*") -> None:
+    async def attributes_check(self, company_id:int="*", quiz_id:int="*", user_id:int="*", permission:bool=False) -> None:
+        if company_id != "*":
+            if not await self.db.fetch_one(query=select(Companies).where(Companies.company_id==company_id)):
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="This company not found")
+            if permission:
+                query = select(Members).where(Members.company_id==self.company_id, Members.user_id==self.user.result.user_id).filter(Members.role.in_(["owner", "admin"]))
+                if not await self.db.fetch_one(query=query):
+                    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User doesn't have permission for this")
         if quiz_id != "*":
             quiz = await self.db.fetch_one(query=select(Quizzes).where(Quizzes.quiz_id == quiz_id))
             if not quiz:
                 raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="This quiz not found")
         if company_id != "*":
-            if not await self.db.fetch_one(query=select(Members).where(Members.company_id==company_id, Members.user_id==self.user.result.user_id)):
-                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="This user not a member of this company")
             if quiz_id != "*":
                 if quiz.company_id != company_id:
-                    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="This quiz not in this company")
+                    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="This quiz not in this company")
             if user_id != "*":
                 if not await self.db.fetch_one(query=select(Members).where(Members.company_id==self.company_id, Members.user_id == user_id)):
-                    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User with id {user_id} not a member of this company")
+                    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"User with id {user_id} not a member of this company")
 
 
     async def response_create(self, file:bool, keys:list) -> Union[DataListResponse, StreamingResponse]:
@@ -72,14 +77,7 @@ class DataService:
         return await self.response_create(file=file, keys=keys)
         
      
-    async def permission_check(self) -> None:
-        query = select(Members).where(Members.company_id==self.company_id, Members.user_id==self.user.result.user_id).filter(Members.role.in_(["owner", "admin"]))
-        if not await self.db.fetch_one(query=query):
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User doesn't have permission for this")
-
-
     async def data_company(self, user_id:int="*", quiz_id:int="*", file=False) -> Union[DataListResponse, StreamingResponse]:
-        await self.permission_check()
-        await self.attributes_check(company_id=self.company_id, user_id=user_id, quiz_id=quiz_id)
+        await self.attributes_check(company_id=self.company_id, user_id=user_id, quiz_id=quiz_id, permission=True)
         keys = await self.redis.keys(f'company_{self.company_id}:user_{user_id}:quiz_{quiz_id}:*')
         return await self.response_create(file=file, keys=keys)

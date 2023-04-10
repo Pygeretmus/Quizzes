@@ -1,7 +1,11 @@
 from httpx import AsyncClient
 
+
 # Number of tests 37
-# User 1 in company 2, user 3 in company 2.
+# Created 6 users, 1 (id=6) deleted and recreated (id=7).
+# Created 5 companies, 1 (id=5) deleted.
+# User 1 in company 2, user 2 has invite to company 1.
+# User 3 in company 2, company 3 has request from user 2.
 
 
 # ============================================== REQUEST CREATE ==============================================
@@ -39,7 +43,7 @@ async def test_bad_send_request_already_in_company(ac: AsyncClient, users_tokens
         "request_message": "string"
     }
     response = await ac.post("/request/", json=payload, headers=headers)
-    assert response.status_code == 400
+    assert response.status_code == 403
     assert response.json().get('detail') == "User is already in this company"
 
 
@@ -73,6 +77,15 @@ async def test_send_requests_success(ac: AsyncClient, users_tokens):
         "request_message": "3 request"
     }
     await ac.post("/request/", json=payload, headers=headers)
+    # Request 4
+    headers = {
+        "Authorization": f"Bearer {users_tokens['test2@test.com']}",
+    }
+    payload = {
+        "to_company_id": 3,
+        "request_message": "4 request"
+    }
+    await ac.post("/request/", json=payload, headers=headers)
 
 
 async def test_bad_send_request_already_sent(ac: AsyncClient, users_tokens):
@@ -84,7 +97,7 @@ async def test_bad_send_request_already_sent(ac: AsyncClient, users_tokens):
         "request_message": "string"
     }
     response = await ac.post("/request/", json=payload, headers=headers)
-    assert response.status_code == 400
+    assert response.status_code == 403
     assert response.json().get('detail') == "Request already exists"
 
 
@@ -97,7 +110,7 @@ async def test_bad_send_request_invited_already(ac: AsyncClient, users_tokens):
         "request_message": "string"
     }
     response = await ac.post("/request/", json=payload, headers=headers)
-    assert response.status_code == 400
+    assert response.status_code == 403
     assert response.json().get('detail') == "Company already made the invite to this user"
 
 
@@ -111,7 +124,7 @@ async def test_bad_send_invite_requested_already(ac: AsyncClient, users_tokens):
         "invite_message": "string"
     }
     response = await ac.post("/invite/", json=payload, headers=headers)
-    assert response.status_code == 400
+    assert response.status_code == 403
     assert response.json().get('detail') == "User already made the request to this company"
 
 

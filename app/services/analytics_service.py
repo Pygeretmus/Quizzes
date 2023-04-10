@@ -13,23 +13,27 @@ class AnalyticsService:
         self.user = user
 
     
-    async def attributes_check(self, user_id:int=None, quiz_id:int=None, company_id:int=None) -> None:
+    async def attributes_check(self, user_id:int=None, quiz_id:int=None, company_id:int=None, permission:bool=False) -> None:
         if company_id:
             if not await self.db.fetch_one(query=select(Companies).where(Companies.company_id==company_id)):
                 raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="This company not found")
+        if permission:
+            query = select(Members).where(Members.company_id==company_id, Members.user_id==self.user.result.user_id).filter(Members.role.in_(["owner", "admin"]))
+            if not await self.db.fetch_one(query=query):
+                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User doesn't have permission for this")
         if user_id:
             if not await self.db.fetch_one(query=select(Users).where(Users.user_id==user_id)):
                 raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="This user not found")
             if company_id:
                 if not await self.db.fetch_one(query=select(Members).where(Members.company_id==company_id, Members.user_id==user_id)):
-                    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="This user not a member of this company")
+                    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="This user not a member of this company")
         if quiz_id:
             quiz = await self.db.fetch_one(query=select(Quizzes).where(Quizzes.quiz_id == quiz_id))
             if not quiz:
                 raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="This quiz not found")
             if company_id:
                  if quiz.company_id != company_id:
-                    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="This quiz not in this company")
+                    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="This quiz not in this company")
 
 
     async def rating_get_user(self, user_id:int) -> FloatResponse:
@@ -42,14 +46,14 @@ class AnalyticsService:
 
     async def rating_get_company(self, user_id:int, company_id:int) -> FloatResponse:
         await self.attributes_check(user_id=user_id, company_id=company_id)
-        rating = await self.db.fetch_one(query=select(Statistics).where(Statistics.user_id == user_id).order_by(desc(Statistics.statistic_id)).limit(1))  
+        rating = await self.db.fetch_one(query=select(Statistics).where(Statistics.user_id == user_id, Statistics.company_id==company_id).order_by(desc(Statistics.statistic_id)).limit(1))  
         if rating:
             return FloatResponse(detail="success", result=rating.company_average)
         return FloatResponse(detail="success", result=0.0)
 
 
     async def average_get_my_quizzes(self, quiz_id:int=None, company_id:int=None) -> QuizAttemptsResponse:
-        await self.attributes_check(quiz_id=quiz_id, company_id=company_id)
+        await self.attributes_check(user_id=self.user.result.user_id, quiz_id=quiz_id, company_id=company_id)
         result=[]
         if quiz_id:
             attempts = await self.db.fetch_all(query=select(Statistics).where(Statistics.quiz_id==quiz_id, Statistics.user_id==self.user.result.user_id))
@@ -73,18 +77,11 @@ class AnalyticsService:
         for quiz_id in quizzes:
             last = await self.db.fetch_one(query=select(Statistics).where(Statistics.quiz_id==quiz_id, Statistics.user_id==self.user.result.user_id).order_by(desc(Statistics.statistic_id)).limit(1))
             result.append(LastAttempt(**last))
-        return LastAttempts(detail="success", result=result)
-    
-
-    async def permission_check(self, company_id:int) -> None:
-        query = select(Members).where(Members.company_id==company_id, Members.user_id==self.user.result.user_id).filter(Members.role.in_(["owner", "admin"]))
-        if not await self.db.fetch_one(query=query):
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User doesn't have permission for this")
+        return LastAttempts(detail="success", result=result)  
 
 
     async def average_get_company_quizzes(self, company_id:int) -> UserAttemptsResponse:
-        await self.permission_check(company_id=company_id)
-        await self.attributes_check(company_id=company_id)
+        await self.attributes_check(company_id=company_id, permission=True)
         result = []
         members = await self.db.fetch_all(query=select(Members).where(Members.company_id==company_id))
         for member in members:
@@ -94,8 +91,7 @@ class AnalyticsService:
     
 
     async def average_get_company_quizzes_id(self, company_id:int, user_id:int=None) -> UserQuizAttemptsResponse:
-        await self.permission_check(company_id=company_id)
-        await self.attributes_check(company_id=company_id, user_id=user_id)
+        await self.attributes_check(company_id=company_id, user_id=user_id, permission=True)
         result = []
         attempts = await self.db.fetch_all(query=select(Statistics).where(Statistics.user_id==user_id, Statistics.company_id==company_id))
         result.append(UserQuizAttempt(user_id = user_id, result=[CompanyQuizAttempt(**item) for item in attempts]))
@@ -103,8 +99,7 @@ class AnalyticsService:
     
 
     async def average_get_company_quizzes_user_id(self, company_id:int, quiz_id:int=None) -> UserQuizAttemptsResponse:
-        await self.permission_check(company_id=company_id)
-        await self.attributes_check(company_id=company_id, quiz_id=quiz_id)
+        await self.attributes_check(company_id=company_id, quiz_id=quiz_id, permission=True)
         result = []
         members = await self.db.fetch_all(query=select(Members).where(Members.company_id==company_id))
         for member in members:
@@ -114,8 +109,7 @@ class AnalyticsService:
 
 
     async def rating_get_company_owner(self, company_id:int, user_id:int=None) -> ManyFloatResponse:
-        await self.permission_check(company_id=company_id)
-        await self.attributes_check(user_id=user_id, company_id=company_id)
+        await self.attributes_check(user_id=user_id, company_id=company_id, permission=True)
         result = []
         if user_id:
             rating = await self.db.fetch_one(query=select(Statistics).where(Statistics.user_id == user_id).order_by(desc(Statistics.statistic_id)).limit(1))  
@@ -134,8 +128,7 @@ class AnalyticsService:
 
 
     async def datas_get_company(self, company_id:int) -> MemberLastsResponse:
-        await self.attributes_check(company_id=company_id)
-        await self.permission_check(company_id=company_id)
+        await self.attributes_check(company_id=company_id, permission=True)
         members = await self.db.fetch_all(query=select(Members).where(Members.company_id==company_id))
         result = []
         for member in members:

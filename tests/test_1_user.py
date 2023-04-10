@@ -1,5 +1,6 @@
 from httpx import AsyncClient
 
+
 # Number of tests 33
 # Created 6 users, 1 (id=6) deleted and recreated (id=7).
 
@@ -13,7 +14,7 @@ async def test_bad_create_user__not_password(ac: AsyncClient):
         "user_name": "test"
     }
     response = await ac.post("/user/", json=payload)
-    assert response.status_code == 422
+    assert response.status_code == 400
     assert response.json().get('detail') == "Password required"
 
 
@@ -48,7 +49,7 @@ async def test_bad_create_user__empty_name(ac:AsyncClient):
         "user_email": "test@test.com",
     }
     response = await ac.post("/user/", json=payload)
-    assert response.status_code == 422
+    assert response.status_code == 400
     assert response.json().get('detail') == "Name required"
 
 
@@ -146,7 +147,7 @@ async def test_bad_create_user__email_exists(ac: AsyncClient):
         "user_name": "test",
     }
     response = await ac.post("/user/", json=payload)
-    assert response.status_code == 400
+    assert response.status_code == 403
     assert response.json().get('detail') == "Email already exists"
 
 
@@ -155,7 +156,7 @@ async def test_bad_create_user__email_exists(ac: AsyncClient):
 
 async def test_bad_login__empty_password(ac: AsyncClient, login_user):
     response = await login_user("test1@test.com", "")
-    assert response.status_code == 422
+    assert response.status_code == 400
     assert response.json().get('detail') == "Password required"
 
 

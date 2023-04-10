@@ -64,11 +64,11 @@ class RequestService:
     async def request_send(self, payload: RequestCreateRequest) -> RequestResponse:
         await self.company_get_id(company_id=payload.to_company_id)
         if await self.db.fetch_one(query=select(Requests).where(Requests.from_user_id==self.user.result.user_id, Requests.to_company_id == payload.to_company_id)):
-            raise HTTPException(status_code=400, detail="Request already exists")
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Request already exists")
         if await self.db.fetch_one(query=select(Invites).where(Invites.to_user_id==self.user.result.user_id, Invites.from_company_id == payload.to_company_id)):
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Company already made the invite to this user")
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Company already made the invite to this user")
         if await self.db.fetch_one(query=select(Members).where(Members.user_id==self.user.result.user_id, Members.company_id == payload.to_company_id)):
-            raise HTTPException(status_code=400, detail="User is already in this company")
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User is already in this company")
         query = insert(Requests).values(from_user_id = self.user.result.user_id, to_company_id = payload.to_company_id, request_message = payload.request_message).returning(Requests)
         result = await self.db.fetch_one(query=query)
         return RequestResponse(detail='success', result=Request(**result))

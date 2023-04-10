@@ -41,5 +41,5 @@ async def get_current_user(token: str = Depends(auth_token_schema), db: Database
     except KeyError:
         user_email = payload["sub"]
         if not user_email:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Email is not valid")
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Email is not valid")
     return await UserService(db=db).current_user(user_email=user_email)

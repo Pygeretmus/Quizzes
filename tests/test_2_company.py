@@ -1,7 +1,10 @@
 from httpx import AsyncClient
 
+
 # Number of tests 20
+# Created 6 users, 1 (id=6) deleted and recreated (id=7).
 # Created 5 companies, 1 (id=5) deleted.
+
 
 # ============================================== COMPANY CREATE ==============================================
 
@@ -24,7 +27,7 @@ async def test_bad_create_company__no_name(ac: AsyncClient, users_tokens):
         "company_description": "company_description"
     }
     response = await ac.post("/company/", json=payload, headers=headers)
-    assert response.status_code == 422
+    assert response.status_code == 400
     assert response.json().get("detail") == "Name required"
 
 

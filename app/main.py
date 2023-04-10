@@ -22,6 +22,9 @@ app.include_router(request_route.router, prefix='/request', tags=["Request"])
 app.include_router(user_route.router, prefix='', tags= ["User"])
 
 
+scheduler = AsyncIOScheduler()
+
+
 async def make_notifications():
     db = get_db()
     await NotificationService(db=db).notification_make_all()
@@ -32,16 +35,17 @@ async def databases_connect():
     await redis_connect()  
     databases = get_db()
     await databases.connect()
-    scheduler = AsyncIOScheduler()
     scheduler.add_job(make_notifications, 'cron', hour=2, minute=0)
     scheduler.start()
 
 
 @app.on_event("shutdown")
 async def databases_close():
+    scheduler.shutdown()
     await redis_close()  
     databases = get_db()
     await databases.disconnect()
+    
 
 
 

@@ -58,3 +58,8 @@ async def downgrade_admin(company_id: int, user_id: int, user: UserResponse = De
 @router.post("/company/{company_id}/admin/", response_model=MemberResponse)
 async def upgrade_admin(company_id: int, payload:AdminUpgrade, user: UserResponse = Depends(get_current_user), db: Database = Depends(get_db)) -> MemberResponse:
     return await CompanyService(db=db, user=user, company_id=company_id).admin_upgrade(user_id=payload.user_id)
+
+
+@router.post("/company/{company_id}/owner/{user_id}/", response_model=Response)
+async def give_ownership(company_id: int, user_id:int, user: UserResponse = Depends(get_current_user), db: Database = Depends(get_db)) -> Response:
+    return await CompanyService(db=db, user=user, company_id=company_id).ownership_give(user_id=user_id)

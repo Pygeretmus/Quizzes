@@ -6,7 +6,7 @@ from databases              import Database
 from fastapi                import HTTPException, status
 from models.models          import Users, Members
 from schemas.user_schema    import *
-from sqlalchemy             import select, insert, delete, update
+from sqlalchemy             import select, insert, delete, update, desc
 
 
 
@@ -38,6 +38,8 @@ class UserService:
 
     async def user_delete(self, user_id: int) -> Response:
         await self.id_check(user_id=user_id)
+        if await self.db.fetch_one(query=select(Members).where(Members.user_id==user_id, Members.role=="owner")):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You have to give ownership of the company before deletion")
         query = delete(Users).where(Users.user_id == user_id)
         await self.db.execute(query=query)
         return Response(detail="success")
@@ -45,7 +47,7 @@ class UserService:
 
     async def password_check(self, password: str) -> None:
         if not password:
-            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Password required")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Password required")
         elif len(password) < 4:
             raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Password must be longer than three characters")
 
@@ -61,11 +63,11 @@ class UserService:
     async def user_create(self, data: SignUpRequest) -> UserResponse:
         await self.password_check(data.user_password)
         if await self.user_get_email(user_email = data.user_email):
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already exists")
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Email already exists")
         if data.user_password != data.user_password_repeat:
             raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Password and Confirm Password must be match")
         if not bool(data.user_name):
-            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Name required")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Name required")
         hashed_password = PasswordHasher().hash(data.user_password)
         query = insert(Users).values(
             user_email = data.user_email,
@@ -124,6 +126,7 @@ class UserService:
     
     
     async def company_leave(self, company_id:int) -> Response:
-        query = delete(Members).where(Members.company_id==company_id, Members.user_id == self.user.result.user_id)
-        await self.db.execute(query=query)
-        return Response(detail="success")
+        query = delete(Members).where(Members.company_id==company_id, Members.user_id == self.user.result.user_id).filter(Members.role.in_(["user", "admin"])).returning(Members)
+        if await self.db.execute(query=query):
+            return Response(detail="success")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User has to be member or admin of this company")
